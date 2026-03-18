@@ -3,13 +3,13 @@
 SWIFT已经支持Embedding模型的训练，包括纯文本和多模态两个类型。目前已经支持的模型有：
 
 1. modernbert embedding模型
-   - [ModelScope](https://modelscope.cn/models/iic/gte-modernbert-base) [Hugging Face](https://huggingface.co/Alibaba-NLP/gte-modernbert-base)
+   - [ModelScope](https://modelscope.cn/models/iic/gte-modernbert-base) [Hugging Face](https://hf-mirror.com/Alibaba-NLP/gte-modernbert-base)
 2. gte embedding模型
-   - 1.5B: [ModelScope](https://www.modelscope.cn/models/iic/gte_Qwen2-1.5B-instruct) [Hugging Face](https://huggingface.co/Alibaba-NLP/gte-Qwen2-1.5B-instruct)
-   - 7B: [ModelScope](https://www.modelscope.cn/models/iic/gte_Qwen2-7B-instruct) [Hugging Face](https://huggingface.co/Alibaba-NLP/gte-Qwen2-7B-instruct)
+   - 1.5B: [ModelScope](https://www.modelscope.cn/models/iic/gte_Qwen2-1.5B-instruct) [Hugging Face](https://hf-mirror.com/Alibaba-NLP/gte-Qwen2-1.5B-instruct)
+   - 7B: [ModelScope](https://www.modelscope.cn/models/iic/gte_Qwen2-7B-instruct) [Hugging Face](https://hf-mirror.com/Alibaba-NLP/gte-Qwen2-7B-instruct)
 3. gme embedding模型
-   - 2B: [ModelScope](https://www.modelscope.cn/models/iic/gme-Qwen2-VL-2B-Instruct) [Hugging Face](https://huggingface.co/Alibaba-NLP/gme-Qwen2-VL-2B-Instruct)
-   - 7B: [ModelScope](https://www.modelscope.cn/models/iic/gme-Qwen2-VL-7B-Instruct) [Hugging Face](https://huggingface.co/Alibaba-NLP/gme-Qwen2-VL-7B-Instruct)
+   - 2B: [ModelScope](https://www.modelscope.cn/models/iic/gme-Qwen2-VL-2B-Instruct) [Hugging Face](https://hf-mirror.com/Alibaba-NLP/gme-Qwen2-VL-2B-Instruct)
+   - 7B: [ModelScope](https://www.modelscope.cn/models/iic/gme-Qwen2-VL-7B-Instruct) [Hugging Face](https://hf-mirror.com/Alibaba-NLP/gme-Qwen2-VL-7B-Instruct)
 
 开发者可以自行集成自己的模型，模型forward输出值需要满足：
 

@@ -14,7 +14,7 @@ import functools
 logger = logging.getLogger(__name__)
 
 
-MODEL_PATH = 'https://huggingface.co/laion/CLIP-ViT-L-14-DataComp.XL-s13B-b90K'
+MODEL_PATH = 'https://hf-mirror.com/laion/CLIP-ViT-L-14-DataComp.XL-s13B-b90K'
 _MODELS = {
     "ViT-L/14": os.path.join(MODEL_PATH, "vit_l14_text.pth"),
 }

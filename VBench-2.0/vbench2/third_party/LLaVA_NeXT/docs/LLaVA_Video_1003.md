@@ -10,7 +10,7 @@
 
 ## Model Summary
 
-The LLaVA-Video models are 7/72B parameter models trained on [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K) and [LLaVA-OneVision Dataset](https://huggingface.co/datasets/lmms-lab/LLaVA-OneVision-Data), based on Qwen2 language model with a context window of 32K tokens.
+The LLaVA-Video models are 7/72B parameter models trained on [LLaVA-Video-178K](https://hf-mirror.com/datasets/lmms-lab/LLaVA-Video-178K) and [LLaVA-OneVision Dataset](https://hf-mirror.com/datasets/lmms-lab/LLaVA-OneVision-Data), based on Qwen2 language model with a context window of 32K tokens.
 
 
 ## Inference

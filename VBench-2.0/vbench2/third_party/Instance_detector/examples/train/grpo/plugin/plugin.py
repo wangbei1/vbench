@@ -482,7 +482,7 @@ class QwenLongPlugin(DefaultRMPlugin):
     # https://arxiv.org/abs/2505.17667
     # NOTE: you should customize the verified reward function, you can refer to
     # https://github.com/Tongyi-Zhiwen/QwenLong-L1/tree/main/verl/verl/utils/reward_score
-    # hf_dataset: https://huggingface.co/datasets/Tongyi-Zhiwen/DocQA-RL-1.6K/viewer/default/train
+    # hf_dataset: https://hf-mirror.com/datasets/Tongyi-Zhiwen/DocQA-RL-1.6K/viewer/default/train
     # ms_dataset: https://modelscope.cn/datasets/iic/DocQA-RL-1.6K
     def __init__(self, model, template, accuracy_orm=None):
         super().__init__(model, template)

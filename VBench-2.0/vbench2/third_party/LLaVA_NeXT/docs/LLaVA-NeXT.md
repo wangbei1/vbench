@@ -3,7 +3,7 @@
 ## Quick Start With HuggingFace
 First please install our repo with code and environments: `pip install git+https://github.com/LLaVA-VL/LLaVA-NeXT.git`
 
-Here is a quick inference code using [`llavanext-llama3-8B`](https://huggingface.co/lmms-lab/llama3-llava-next-8b) as an example. You will need to install [`flash-attn`](https://github.com/Dao-AILab/flash-attention) to use this code snippet. If you don't want to install it, you can set `attn_implementation=None` when load_pretrained_model
+Here is a quick inference code using [`llavanext-llama3-8B`](https://hf-mirror.com/lmms-lab/llama3-llava-next-8b) as an example. You will need to install [`flash-attn`](https://github.com/Dao-AILab/flash-attention) to use this code snippet. If you don't want to install it, you can set `attn_implementation=None` when load_pretrained_model
 ```python
 from llava.model.builder import load_pretrained_model
 from llava.mm_utils import get_model_name_from_path, process_images, tokenizer_image_token

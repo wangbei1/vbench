@@ -3,13 +3,13 @@
 SWIFT has already supported the training of Embedding models, including both pure text and multimodal types. The currently supported models are:
 
 1. **ModernBERT Embedding Model**
-   - [ModelScope](https://modelscope.cn/models/iic/gte-modernbert-base) | [Hugging Face](https://huggingface.co/Alibaba-NLP/gte-modernbert-base)
+   - [ModelScope](https://modelscope.cn/models/iic/gte-modernbert-base) | [Hugging Face](https://hf-mirror.com/Alibaba-NLP/gte-modernbert-base)
 2. **GTE Embedding Models**
-   - **1.5B**: [ModelScope](https://www.modelscope.cn/models/iic/gte_Qwen2-1.5B-instruct) | [Hugging Face](https://huggingface.co/Alibaba-NLP/gte-Qwen2-1.5B-instruct)
-   - **7B**: [ModelScope](https://www.modelscope.cn/models/iic/gte_Qwen2-7B-instruct) | [Hugging Face](https://huggingface.co/Alibaba-NLP/gte-Qwen2-7B-instruct)
+   - **1.5B**: [ModelScope](https://www.modelscope.cn/models/iic/gte_Qwen2-1.5B-instruct) | [Hugging Face](https://hf-mirror.com/Alibaba-NLP/gte-Qwen2-1.5B-instruct)
+   - **7B**: [ModelScope](https://www.modelscope.cn/models/iic/gte_Qwen2-7B-instruct) | [Hugging Face](https://hf-mirror.com/Alibaba-NLP/gte-Qwen2-7B-instruct)
 3. **GME Embedding Models**
-   - **2B**: [ModelScope](https://www.modelscope.cn/models/iic/gme-Qwen2-VL-2B-Instruct) | [Hugging Face](https://huggingface.co/Alibaba-NLP/gme-Qwen2-VL-2B-Instruct)
-   - **7B**: [ModelScope](https://www.modelscope.cn/models/iic/gme-Qwen2-VL-7B-Instruct) | [Hugging Face](https://huggingface.co/Alibaba-NLP/gme-Qwen2-VL-7B-Instruct)
+   - **2B**: [ModelScope](https://www.modelscope.cn/models/iic/gme-Qwen2-VL-2B-Instruct) | [Hugging Face](https://hf-mirror.com/Alibaba-NLP/gme-Qwen2-VL-2B-Instruct)
+   - **7B**: [ModelScope](https://www.modelscope.cn/models/iic/gme-Qwen2-VL-7B-Instruct) | [Hugging Face](https://hf-mirror.com/Alibaba-NLP/gme-Qwen2-VL-7B-Instruct)
 
 Developers can integrate their own models independently. The `forward` output of the model needs to satisfy:
 

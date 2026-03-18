@@ -6,10 +6,10 @@
 - General Inquiries: **Check our [FAQ](https://github.com/Vchitect/VBench/blob/master/VBench-2.0/README-FAQ.md)** for common questions. For other questions, contact Dian Zheng at zhengd35 [at] mail2 [at] sysu [at] edu [at] cn or Ziqi Huang at ZIQI002 [at] e [dot] ntu [dot] edu [dot] sg. 
 
 [![VBench-2.0 Report (arXiv)](https://img.shields.io/badge/VBench-2.0%20Report-b31b1b?logo=arxiv&logoColor=red)](https://arxiv.org/abs/2503.21755)
-[![HuggingFace](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Leaderboard-blue)](https://huggingface.co/spaces/Vchitect/VBench_Leaderboard)
+[![HuggingFace](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Leaderboard-blue)](https://hf-mirror.com/spaces/Vchitect/VBench_Leaderboard)
 [![Project Page](https://img.shields.io/badge/Project-Page-green?logo=googlechrome&logoColor=green)](https://vchitect.github.io/VBench-2.0-project/)
 [![Video](https://img.shields.io/badge/YouTube-Video-c4302b?logo=youtube&logoColor=red)](https://www.youtube.com/watch?v=kJrzKy9tgAc)
-[![VBench-2.0 Arena (View Generated Videos Here!)](https://img.shields.io/badge/%F0%9F%A4%97%20VBench2.0%20Arena-blue)](https://huggingface.co/spaces/Vchitect/VBench2.0_Video_Arena)
+[![VBench-2.0 Arena (View Generated Videos Here!)](https://img.shields.io/badge/%F0%9F%A4%97%20VBench2.0%20Arena-blue)](https://hf-mirror.com/spaces/Vchitect/VBench2.0_Video_Arena)
 [![Dataset Download](https://img.shields.io/badge/Dataset-Download-red?logo=googlechrome&logoColor=red)](https://drive.google.com/drive/folders/1on66fnZ8atRoLDimcAXMxSwRxqN8_0yS?usp=sharing)
 
 This repository contains the implementation of the following paper.
@@ -162,7 +162,7 @@ zip -r ../evaluation_results.zip .
 python scripts/cal_final_score.py --zip_file {path_to_evaluation_results.zip} --model_name {your_model_name}
 ```
 
-You can submit the json file to [HuggingFace](https://huggingface.co/spaces/Vchitect/VBench_Leaderboard)
+You can submit the json file to [HuggingFace](https://hf-mirror.com/spaces/Vchitect/VBench_Leaderboard)
 
 ### How to Calculate Total Score
 

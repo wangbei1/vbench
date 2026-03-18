@@ -20,7 +20,7 @@ Some Implementation Details:
 - Trained using a combination of vision-specific (AdamW, 2e-6) and language model (AdamW, 1e-5) learning rates.
 - Each stage is trained for 1 epoch.
 
-The model uses [SO400M](https://huggingface.co/collections/google/siglip-659d5e62f0ae1a57ae0e83ba) as the vision encoder and [Qwen-2.0](https://huggingface.co/docs/transformers/model_doc/qwen2) as the language model, with trainable components including a projector and the full model in later stages.
+The model uses [SO400M](https://hf-mirror.com/collections/google/siglip-659d5e62f0ae1a57ae0e83ba) as the vision encoder and [Qwen-2.0](https://hf-mirror.com/docs/transformers/model_doc/qwen2) as the language model, with trainable components including a projector and the full model in later stages.
 
 We recommend to use the scripts in [training](../scripts/) to get the details of the training process.
 

@@ -55,7 +55,7 @@ def get_model_info_table():
                 else:
                     ms_model_id = '-'
                 if hf_model_id:
-                    hf_model_id = f'[{hf_model_id}](https://huggingface.co/{get_url_suffix(hf_model_id)})'
+                    hf_model_id = f'[{hf_model_id}](https://hf-mirror.com/{get_url_suffix(hf_model_id)})'
                 else:
                     hf_model_id = '-'
                 tags = ', '.join(group.tags or model_meta.tags) or '-'

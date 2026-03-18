@@ -6,7 +6,7 @@ Option | Sampling Party | Evaluation Party |              Comments              
 | :---: | :---: |  :---: |        :--------------    | 
 | 1️⃣ | VBench Team | VBench Team | VBench Team handles everything — ideal for both open-source and closed-source models (if API access is provided). We periodically allocate resources to sample newly released models and perform evaluations. You can request us to perform sampling and evaluation, but the progress depends on our available resources. |
 | 2️⃣ | Your Team | VBench Team | Submit your video samples via this [Google Form](https://forms.gle/Dy26sRobB6vouQZC7). If you prefer to evaluate on your own, refer to Option 3. |
-| 3️⃣ | Your Team | Your Team | Already performed the full VBench evaluation? Submit your `eval_results.zip` files to the [VBench Leaderboard](https://huggingface.co/spaces/Vchitect/VBench_Leaderboard)'s `[T2V]Submit here!` form. The evaluation results will be automatically updated to the leaderboard. Make sure to also fill in model details in the `[T2V]Submit here!` form. Submissions lacking essential information may be removed periodically. |
+| 3️⃣ | Your Team | Your Team | Already performed the full VBench evaluation? Submit your `eval_results.zip` files to the [VBench Leaderboard](https://hf-mirror.com/spaces/Vchitect/VBench_Leaderboard)'s `[T2V]Submit here!` form. The evaluation results will be automatically updated to the leaderboard. Make sure to also fill in model details in the `[T2V]Submit here!` form. Submissions lacking essential information may be removed periodically. |
 
 🔍 Transparency Note: Each leaderboard entry clearly states who performed the sampling and evaluation.
 

@@ -25,7 +25,7 @@ def get_aesthetic_model(cache_folder):
     path_to_model = os.path.join(cache_folder, "sa_0_4_vit_l_14_linear.pth")
     if not os.path.exists(path_to_model):
         os.makedirs(cache_folder, exist_ok=True)
-        url_model = "https://huggingface.co/OpenGVLab/VBench_Used_Models/resolve/main/sa_0_4_vit_l_14_linear.pth"
+        url_model = "https://hf-mirror.com/OpenGVLab/VBench_Used_Models/resolve/main/sa_0_4_vit_l_14_linear.pth"
         try:
             print(f'trying urlretrieve to download {url_model} to {path_to_model}')
             urlretrieve(url_model, path_to_model)

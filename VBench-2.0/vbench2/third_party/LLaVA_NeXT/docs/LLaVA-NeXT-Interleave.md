@@ -25,7 +25,7 @@ python playground/demo/interleave_demo.py --model_path path/to/ckpt
 
 Please download the evaluation data and its metadata from the following links:
 
-1. **llava-interleave-bench:** [here](https://huggingface.co/datasets/lmms-lab/llava-interleave-bench).
+1. **llava-interleave-bench:** [here](https://hf-mirror.com/datasets/lmms-lab/llava-interleave-bench).
 
 Unzip eval_images.zip and there are Split1 and Split2 in it.
 Organize the downloaded data into the following structure:

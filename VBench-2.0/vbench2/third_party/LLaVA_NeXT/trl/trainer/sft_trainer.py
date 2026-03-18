@@ -381,7 +381,7 @@ class SFTTrainer(Trainer):
         use_formatting_func = formatting_func is not None and dataset_text_field is None
         self._dataset_sanity_checked = False
 
-        # Inspired from: https://huggingface.co/learn/nlp-course/chapter7/6?fw=pt
+        # Inspired from: https://hf-mirror.com/learn/nlp-course/chapter7/6?fw=pt
         def tokenize(element):
             outputs = tokenizer(
                 element[dataset_text_field] if not use_formatting_func else formatting_func(element),

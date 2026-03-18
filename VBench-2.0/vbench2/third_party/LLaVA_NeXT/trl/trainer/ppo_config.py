@@ -43,7 +43,7 @@ class PPOConfig:
     seed: int = 0
     """Seed value for random generations"""
     log_with: Optional[Literal["wandb", "tensorboard"]] = None
-    """Log with either 'wandb' or 'tensorboard', check  https://huggingface.co/docs/accelerate/usage_guides/tracking for more details"""
+    """Log with either 'wandb' or 'tensorboard', check  https://hf-mirror.com/docs/accelerate/usage_guides/tracking for more details"""
     task_name: Optional[str] = None
     """Name of task to use - used only for tracking purposes"""
     model_name: Optional[str] = "gpt2"

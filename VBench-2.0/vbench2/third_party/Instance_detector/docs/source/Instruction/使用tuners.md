@@ -92,7 +92,7 @@ tuner是指附加在模型上的额外结构部分，用于减少训练参数量
 - `SwiftModel.add_weighted_adapter(self, ...)`
   - 接口作用：将已有的LoRA tuners合并为一个
   - 参数：
-    - 本接口是PeftModel.add_weighted_adapter的透传，参数可以参考：[add_weighted_adapter文档](https://huggingface.co/docs/peft/main/en/package_reference/lora#peft.LoraModel.add_weighted_adapter)
+    - 本接口是PeftModel.add_weighted_adapter的透传，参数可以参考：[add_weighted_adapter文档](https://hf-mirror.com/docs/peft/main/en/package_reference/lora#peft.LoraModel.add_weighted_adapter)
 
 - `SwiftModel.save_pretrained(self, save_directory, safe_serialization, adapter_name)`
   - 接口作用：存储tuner weights

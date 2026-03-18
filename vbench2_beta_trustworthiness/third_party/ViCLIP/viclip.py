@@ -141,7 +141,7 @@ class ViCLIP(nn.Module):
             text (dict): The output of huggingface's `PreTrainedTokenizer`. contains keys:
                 - input_ids (torch.Tensor): Token ids to be fed to a model. Shape: [B,L].
                 - attention_mask (torch.Tensor): The mask indicate padded tokens. Shape: [B,L]. 0 is padded token.
-                - other keys refer to "https://huggingface.co/docs/transformers/v4.21.2/en/main_classes/tokenizer#transformers.PreTrainedTokenizer.__call__".
+                - other keys refer to "https://hf-mirror.com/docs/transformers/v4.21.2/en/main_classes/tokenizer#transformers.PreTrainedTokenizer.__call__".
         Returns: tuple.
             - text_embeds (torch.Tensor): The features of all tokens. Shape: [B,L,C].
             - pooled_text_embeds (torch.Tensor): The pooled features. Shape: [B,C].

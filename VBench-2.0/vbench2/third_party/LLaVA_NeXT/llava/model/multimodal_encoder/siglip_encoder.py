@@ -1,5 +1,5 @@
 """
-# Adapted from https://huggingface.co/MILVLG/imp-v1-3b/blob/main/vision_encoder.py
+# Adapted from https://hf-mirror.com/MILVLG/imp-v1-3b/blob/main/vision_encoder.py
 """
 
 from typing import Optional, Tuple, Union, Dict

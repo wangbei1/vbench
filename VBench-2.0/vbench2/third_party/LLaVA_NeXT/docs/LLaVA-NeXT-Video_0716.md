@@ -6,12 +6,12 @@ In our [LLaVA-Video blog](https://llava-vl.github.io/blog/2024-04-30-llava-next-
 
 Based on the insights, the new LLaVA-NeXT-Video in this release improves from two aspects:
 
-- 🎬 A stronger image LMMs ([LLaVA-NeXT-32B-Qwen](https://huggingface.co/lmms-lab/llava-next-qwen-32b)), which is built by initializing from Qwen-1.5 32B LLM. We further initialize our video training from this image checkpoint.
+- 🎬 A stronger image LMMs ([LLaVA-NeXT-32B-Qwen](https://hf-mirror.com/lmms-lab/llava-next-qwen-32b)), which is built by initializing from Qwen-1.5 32B LLM. We further initialize our video training from this image checkpoint.
 - 🗂️ A new high-quality video dataset with 830k samples. It is combined with LLaVA-1.6 image training data, and applying the same image-video mixed training procedure leads to the new video model.
 The new model achieves the best open-source performance in several video benchmarks including [Video-MME](https://video-mme.github.io/home_page.html#leaderboard).
 
 ### Resources
-- **Model Card**: [LLaVA-NeXT-Video-32B-Qwen on Hugging Face](https://huggingface.co/lmms-lab/LLaVA-NeXT-Video-32B-Qwen)
+- **Model Card**: [LLaVA-NeXT-Video-32B-Qwen on Hugging Face](https://hf-mirror.com/lmms-lab/LLaVA-NeXT-Video-32B-Qwen)
 - **Inference Script**:
   ```bash
   bash scripts/video/demo/video_demo.sh lmms-lab/LLaVA-NeXT-Video-32B-Qwen qwen_1_5 32 2 average grid True playground/demo/xU25MMA2N4aVtYay.mp4

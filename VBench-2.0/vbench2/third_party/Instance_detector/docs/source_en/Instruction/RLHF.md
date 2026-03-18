@@ -63,7 +63,7 @@ Hyperparameters:
 
 Note: When training the base model, perform SFT first and then proceed to RLHF. Specify the chat template, and it is recommended to use `full` for sft_type.
 
-Refer to the [documentation](https://huggingface.co/docs/trl/ppov2_trainer#explanation-of-the-logged-metrics) for metric explanations during training.
+Refer to the [documentation](https://hf-mirror.com/docs/trl/ppov2_trainer#explanation-of-the-logged-metrics) for metric explanations during training.
 
 ## KTO
 [Paper on arXiv](https://arxiv.org/abs/2402.01306)

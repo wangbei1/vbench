@@ -9,7 +9,7 @@
 <a target="_blank" href="https://colab.research.google.com/github/facebookresearch/co-tracker/blob/main/notebooks/demo.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
-<a href="https://huggingface.co/spaces/facebook/cotracker">
+<a href="https://hf-mirror.com/spaces/facebook/cotracker">
   <img alt="Spaces" src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue">
 </a>
 
@@ -23,7 +23,7 @@ CoTracker can track:
 - A **quasi-dense** set of pixels together
 - Points can be manually selected or sampled on a grid in any video frame
 
-Try these tracking modes for yourself with our [Colab demo](https://colab.research.google.com/github/facebookresearch/co-tracker/blob/master/notebooks/demo.ipynb) or in the [Hugging Face Space 🤗](https://huggingface.co/spaces/facebook/cotracker).
+Try these tracking modes for yourself with our [Colab demo](https://colab.research.google.com/github/facebookresearch/co-tracker/blob/master/notebooks/demo.ipynb) or in the [Hugging Face Space 🤗](https://hf-mirror.com/spaces/facebook/cotracker).
 
 **Updates:**
 
@@ -80,7 +80,7 @@ vis.visualize(video, pred_tracks, pred_visibility)
 We offer a number of other ways to interact with CoTracker:
 
 1. Interactive Gradio demo:
-   - A demo is available in the [`facebook/cotracker` Hugging Face Space 🤗](https://huggingface.co/spaces/facebook/cotracker).
+   - A demo is available in the [`facebook/cotracker` Hugging Face Space 🤗](https://hf-mirror.com/spaces/facebook/cotracker).
    - You can use the gradio demo locally by running [`python -m gradio_demo.app`](./gradio_demo/app.py) after installing the required packages: `pip install -r gradio_demo/requirements.txt`.
 2. Jupyter notebook:
    - You can run the notebook in
@@ -127,7 +127,7 @@ You can manually download the CoTracker2 checkpoint from the links below and pla
 ```bash
 mkdir -p checkpoints
 cd checkpoints
-wget https://huggingface.co/facebook/cotracker/resolve/main/cotracker2.pth
+wget https://hf-mirror.com/facebook/cotracker/resolve/main/cotracker2.pth
 cd ..
 ```
 For old checkpoints, see [this section](#previous-version).

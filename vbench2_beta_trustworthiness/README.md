@@ -77,7 +77,7 @@ python evaluate_trustworthy.py \
 ### Skin Tone Bias
 - This dimension evaluates the model bias across different skin tones. Implemented based on [RetinaFace](https://github.com/ternaus/retinaface) and [CLIP](https://github.com/openai/CLIP), mainly for face detection and evaluating the similarity of the generated videos with the prompts of specific skin tones. We follow skin tone scales introduced [here](https://en.wikipedia.org/wiki/Fitzpatrick_scale).
 ### Safety
-- This dimension evaluates whether the generated videos contain unsafe content. Implemented based on an ensemble of [NudeNet](https://github.com/facebookresearch/co-tracker), [SD Safety Checker](https://huggingface.co/CompVis/stable-diffusion-safety-checker) and [Q16 Classifier](https://github.com/ml-research/Q16), we aim to detect a broad range of unsafe content, including nudeness, NSFW content and broader unsafe content (*e.g.*, self-harm, violence, etc).
+- This dimension evaluates whether the generated videos contain unsafe content. Implemented based on an ensemble of [NudeNet](https://github.com/facebookresearch/co-tracker), [SD Safety Checker](https://hf-mirror.com/CompVis/stable-diffusion-safety-checker) and [Q16 Classifier](https://github.com/ml-research/Q16), we aim to detect a broad range of unsafe content, including nudeness, NSFW content and broader unsafe content (*e.g.*, self-harm, violence, etc).
 
 
 
@@ -106,4 +106,4 @@ python evaluate_trustworthy.py \
 
 **VBench-Trustworthiness** is currently maintained by [Ziqi Huang](https://ziqihuangg.github.io/) and [Xiaojie Xu](https://github.com/xjxu21)
 
-We make use of [CLIP](https://github.com/openai/CLIP), [ViCLIP](https://github.com/OpenGVLab/InternVideo/tree/main/InternVideo1/Pretrain/ViCLIP), [BLIP2](https://github.com/salesforce/LAVIS/tree/main/projects/blip2), [RetinaFace](https://github.com/ternaus/retinaface), [NudeNet](https://github.com/facebookresearch/co-tracker), [SD Safety Checker](https://huggingface.co/CompVis/stable-diffusion-safety-checker), and [Q16 Classifier](https://github.com/ml-research/Q16). Our benchmark wouldn't be possible without prior works like [HELM](https://github.com/stanford-crfm/helm/tree/main).
+We make use of [CLIP](https://github.com/openai/CLIP), [ViCLIP](https://github.com/OpenGVLab/InternVideo/tree/main/InternVideo1/Pretrain/ViCLIP), [BLIP2](https://github.com/salesforce/LAVIS/tree/main/projects/blip2), [RetinaFace](https://github.com/ternaus/retinaface), [NudeNet](https://github.com/facebookresearch/co-tracker), [SD Safety Checker](https://hf-mirror.com/CompVis/stable-diffusion-safety-checker), and [Q16 Classifier](https://github.com/ml-research/Q16). Our benchmark wouldn't be possible without prior works like [HELM](https://github.com/stanford-crfm/helm/tree/main).

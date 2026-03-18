@@ -81,7 +81,7 @@ Below is a list of interfaces that users may call. Other internal or less recomm
 - `SwiftModel.add_weighted_adapter(self, ...)`
   - Function: Merges existing LoRA tuners into one.
   - Parameters:
-    - This interface is a passthrough to `PeftModel.add_weighted_adapter`, and parameters can be referenced in the [add_weighted_adapter documentation](https://huggingface.co/docs/peft/main/en/package_reference/lora#peft.LoraModel.add_weighted_adapter).
+    - This interface is a passthrough to `PeftModel.add_weighted_adapter`, and parameters can be referenced in the [add_weighted_adapter documentation](https://hf-mirror.com/docs/peft/main/en/package_reference/lora#peft.LoraModel.add_weighted_adapter).
 
 - `SwiftModel.save_pretrained(self, save_directory, safe_serialization, adapter_name)`
   - Function: Saves tuner weights.

@@ -85,7 +85,7 @@ Each JSONL file contains annotations for the corresponding images. Each line in 
 2. **Download Dataset**:
    - Download the dataset files from [Google Drive](https://drive.google.com/drive/folders/1_NyiLa861EbDQdDp4Lsy4jTzH2ynCiFw?usp=drive_link) or the following URL:
      ```bash
-     git clone https://huggingface.co/datasets/Vchitect/VBench-2.0_human_anomaly
+     git clone https://hf-mirror.com/datasets/Vchitect/VBench-2.0_human_anomaly
      ```
    - If the large folder does not download, use the following command (You need to configure Git LFS in advance, or we suggest using the Google Drive link above.):
       ```bash

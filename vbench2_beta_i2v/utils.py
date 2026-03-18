@@ -362,7 +362,7 @@ def init_submodules(dimension_list, local=False, read_frame=False, resolution="1
             if not os.path.isfile(details['ckpt']):
                 print(f"File {details['ckpt']} does not exist. Downloading...")
                 wget_command = ['wget', '-P', os.path.dirname(details['ckpt']),
-                                'https://huggingface.co/lalala125/AMT/resolve/main/amt-s.pth']
+                                'https://hf-mirror.com/lalala125/AMT/resolve/main/amt-s.pth']
                 subprocess.run(wget_command, check=True)
 
         elif dimension == 'dynamic_degree':

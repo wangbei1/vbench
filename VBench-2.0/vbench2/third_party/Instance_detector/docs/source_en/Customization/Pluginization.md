@@ -26,7 +26,7 @@ Callbacks are registered with the trainer before it is instantiated. The example
 extra_callbacks = [CustomCallback()]
 ```
 
-Developers can add new callbacks in `plugin/callback.py` and customize their training process. For detailed parameters of callbacks, refer to [this documentation](https://huggingface.co/docs/transformers/main_classes/callback).
+Developers can add new callbacks in `plugin/callback.py` and customize their training process. For detailed parameters of callbacks, refer to [this documentation](https://hf-mirror.com/docs/transformers/main_classes/callback).
 
 ## Customizing Loss
 

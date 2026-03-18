@@ -43,7 +43,7 @@ class Adafactor(Optimizer):
 
     This implementation handles low-precision (FP16, bfloat) values, but we have not thoroughly tested.
 
-    Recommended T5 finetuning settings (https://discuss.huggingface.co/t/t5-finetuning-tips/684/3):
+    Recommended T5 finetuning settings (https://discuss.hf-mirror.com/t/t5-finetuning-tips/684/3):
 
         - Training without LR warmup or clip_threshold is not recommended.
 

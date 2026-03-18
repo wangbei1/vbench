@@ -97,7 +97,7 @@ Hints:
 
 ### Generation Arguments
 
-Refer to the [generation_config](https://huggingface.co/docs/transformers/main_classes/text_generation#transformers.GenerationConfig) documentation.
+Refer to the [generation_config](https://hf-mirror.com/docs/transformers/main_classes/text_generation#transformers.GenerationConfig) documentation.
 
 - 🔥max_new_tokens: The maximum number of new tokens generated during inference. Defaults to None, meaning unlimited.
 - temperature: The temperature parameter. Defaults to None and is read from generation_config.json.
@@ -115,7 +115,7 @@ Refer to the [generation_config](https://huggingface.co/docs/transformers/main_c
 
 ### Quantization Arguments
 
-The following are the parameters for quantization when loading a model. For detailed meanings, you can refer to the [quantization](https://huggingface.co/docs/transformers/main/en/main_classes/quantization) documentation. Note that this does not include `gptq` and `awq` quantization parameters involved in `swift export`.
+The following are the parameters for quantization when loading a model. For detailed meanings, you can refer to the [quantization](https://hf-mirror.com/docs/transformers/main/en/main_classes/quantization) documentation. Note that this does not include `gptq` and `awq` quantization parameters involved in `swift export`.
 
 - 🔥quant_method: The quantization method used when loading the model. Options are `bnb`, `hqq`, `eetq`.
 - 🔥quant_bits: Number of bits for quantization, default is None.
@@ -129,7 +129,7 @@ The following are the parameters for quantization when loading a model. For deta
 
 ### Seq2SeqTrainer Arguments
 
-This parameter list inherits from transformers `Seq2SeqTrainingArguments`, with default values overridden by ms-swift. For unlisted items, refer to the [HF Official Documentation](https://huggingface.co/docs/transformers/main/en/main_classes/trainer#transformers.Seq2SeqTrainingArguments).
+This parameter list inherits from transformers `Seq2SeqTrainingArguments`, with default values overridden by ms-swift. For unlisted items, refer to the [HF Official Documentation](https://hf-mirror.com/docs/transformers/main/en/main_classes/trainer#transformers.Seq2SeqTrainingArguments).
 
 - 🔥output_dir: Defaults to None, set as `output/<model_name>`.
 - 🔥gradient_checkpointing: Whether to use gradient checkpointing, default is True.
@@ -407,7 +407,7 @@ The reward model parameters will be used in PPO and GRPO.
 
 #### PPO Arguments
 
-The meanings of the following parameters can be referenced [here](https://huggingface.co/docs/trl/main/ppo_trainer):
+The meanings of the following parameters can be referenced [here](https://hf-mirror.com/docs/trl/main/ppo_trainer):
 
 - num_ppo_epochs: Defaults to 4
 - whiten_rewards: Defaults to False
@@ -469,7 +469,7 @@ The meanings of the following parameters can be referenced [here](https://huggin
 - num_iterations: number of iterations per batch. Default is 1.
 - epsilon: epsilon value for clipping. Default is 0.2.
 - epsilon_high: Upper clip coefficient, default is None. When set, it forms a clipping range of [epsilon, epsilon_high] together with epsilon.
-- delta: Delta value for the upper clipping bound in two-sided GRPO. Recommended to be > 1 + epsilon. This method was introduced in the [INTELLECT-2 tech report](https://huggingface.co/papers/2505.07291).
+- delta: Delta value for the upper clipping bound in two-sided GRPO. Recommended to be > 1 + epsilon. This method was introduced in the [INTELLECT-2 tech report](https://hf-mirror.com/papers/2505.07291).
 - sync_ref_model: Whether to synchronize the reference model. Default is False。
   - ref_model_mixup_alpha: The Parameter controls the mix between the current policy and the previous reference policy during updates. The reference policy is updated according to the equation: $π_{ref} = α * π_θ + (1 - α) * π_{ref_{prev}}$. Default is 0.6.
   - ref_model_sync_steps：The parameter determines how frequently the current policy is synchronized with the reference policy. Default is 512.

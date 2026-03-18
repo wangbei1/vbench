@@ -39,7 +39,7 @@ class BestOfNSampler(object):
                 Number of candidates to return for each query
             generation_config (`GenerationConfig`, *optional*):
                 Generation config passed to the underlying model's `generate` method.
-                See `GenerationConfig` (https://huggingface.co/docs/transformers/v4.29.1/en/main_classes/text_generation#transformers.GenerationConfig) for more details
+                See `GenerationConfig` (https://hf-mirror.com/docs/transformers/v4.29.1/en/main_classes/text_generation#transformers.GenerationConfig) for more details
         """
         if seed is not None:
             set_seed(seed)

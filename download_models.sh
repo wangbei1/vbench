@@ -24,7 +24,7 @@ mkdir -p "$CACHE_DIR/aesthetic_model/emb_reader"
 if [ ! -f "$CACHE_DIR/aesthetic_model/emb_reader/sa_0_4_vit_l_14_linear.pth" ]; then
     echo "[1/5] Downloading aesthetic linear head ..."
     wget -q --show-progress -O "$CACHE_DIR/aesthetic_model/emb_reader/sa_0_4_vit_l_14_linear.pth" \
-        "https://huggingface.co/OpenGVLab/VBench_Used_Models/resolve/main/sa_0_4_vit_l_14_linear.pth"
+        "https://hf-mirror.com/OpenGVLab/VBench_Used_Models/resolve/main/sa_0_4_vit_l_14_linear.pth"
 else
     echo "[1/5] Aesthetic linear head already exists, skipping."
 fi
@@ -54,7 +54,7 @@ mkdir -p "$CACHE_DIR/ViCLIP"
 if [ ! -f "$CACHE_DIR/ViCLIP/ViClip-InternVid-10M-FLT.pth" ]; then
     echo "[3/5] Downloading ViCLIP ..."
     wget -q --show-progress -P "$CACHE_DIR/ViCLIP" \
-        "https://huggingface.co/OpenGVLab/VBench_Used_Models/resolve/main/ViClip-InternVid-10M-FLT.pth"
+        "https://hf-mirror.com/OpenGVLab/VBench_Used_Models/resolve/main/ViClip-InternVid-10M-FLT.pth"
 else
     echo "[3/5] ViCLIP already exists, skipping."
 fi
@@ -64,7 +64,7 @@ mkdir -p "$CACHE_DIR/amt_model"
 if [ ! -f "$CACHE_DIR/amt_model/amt-s.pth" ]; then
     echo "[4/5] Downloading AMT-S ..."
     wget -q --show-progress -P "$CACHE_DIR/amt_model" \
-        "https://huggingface.co/lalala125/AMT/resolve/main/amt-s.pth"
+        "https://hf-mirror.com/lalala125/AMT/resolve/main/amt-s.pth"
 else
     echo "[4/5] AMT-S already exists, skipping."
 fi

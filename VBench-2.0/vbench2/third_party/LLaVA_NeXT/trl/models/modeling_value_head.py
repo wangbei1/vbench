@@ -191,7 +191,7 @@ class AutoModelForCausalLMWithValueHead(PreTrainedModelWrapper):
     def generate(self, *args, **kwargs):
         r"""
         A simple wrapper around the `generate` method of the wrapped model.
-        Please refer to the [`generate`](https://huggingface.co/docs/transformers/internal/generation_utils)
+        Please refer to the [`generate`](https://hf-mirror.com/docs/transformers/internal/generation_utils)
         method of the wrapped model for more information about the supported arguments.
 
         Args:

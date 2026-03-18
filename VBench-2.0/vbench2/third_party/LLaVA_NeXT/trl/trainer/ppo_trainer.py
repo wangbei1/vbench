@@ -1024,7 +1024,7 @@ class PPOTrainer(BaseTrainer):
                 self.accelerator.clip_grad_norm_(self.model_params, self.config.max_grad_norm)
         self.optimizer.step()
         # we call optimizer.zero_grad() every time and let `accelerator` handle accumulation
-        # see https://huggingface.co/docs/accelerate/usage_guides/gradient_accumulation#the-finished-code
+        # see https://hf-mirror.com/docs/accelerate/usage_guides/gradient_accumulation#the-finished-code
         self.optimizer.zero_grad()
         return train_stats
 

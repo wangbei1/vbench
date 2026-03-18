@@ -22,7 +22,7 @@ class DDPOConfig:
     seed: int = 0
     """Seed value for random generations"""
     log_with: Optional[Literal["wandb", "tensorboard"]] = None
-    """Log with either 'wandb' or 'tensorboard', check  https://huggingface.co/docs/accelerate/usage_guides/tracking for more details"""
+    """Log with either 'wandb' or 'tensorboard', check  https://hf-mirror.com/docs/accelerate/usage_guides/tracking for more details"""
     tracker_kwargs: dict = field(default_factory=dict)
     """Keyword arguments for the tracker (e.g. wandb_project)"""
     accelerator_kwargs: dict = field(default_factory=dict)

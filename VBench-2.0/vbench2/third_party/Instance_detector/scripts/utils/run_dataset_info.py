@@ -47,7 +47,7 @@ def run_dataset(key, template, cache_mapping):
     else:
         ms_id = '-'
     if hf_id is not None:
-        hf_id = f'[{hf_id}](https://huggingface.co/datasets/{hf_id})'
+        hf_id = f'[{hf_id}](https://hf-mirror.com/datasets/{hf_id})'
     else:
         hf_id = '-'
     subsets = '<br>'.join(subset.name for subset in dataset_meta.subsets)

@@ -47,7 +47,7 @@ def check_links_in_folder(folder_path):
                     if check_link(link):
                         logger.info(f'✅ Link is valid: {link}')
                     else:
-                        if 'huggingface.co' in link:
+                        if 'hf-mirror.com' in link:
                             logger.info(f'Link is broken: {link}')
                         else:
                             logger.info(f'❌ Link is broken: {link}')

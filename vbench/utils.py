@@ -255,7 +255,7 @@ def init_submodules(dimension_list, local=False, read_frame=False):
         elif dimension == 'human_action':
             umt_path = f'{CACHE_DIR}/umt_model/l16_ptk710_ftk710_ftk400_f16_res224.pth'
             if not os.path.isfile(umt_path):
-                wget_command = ['wget', 'https://huggingface.co/OpenGVLab/VBench_Used_Models/resolve/main/l16_ptk710_ftk710_ftk400_f16_res224.pth', '-P', os.path.dirname(umt_path)]
+                wget_command = ['wget', 'https://hf-mirror.com/OpenGVLab/VBench_Used_Models/resolve/main/l16_ptk710_ftk710_ftk400_f16_res224.pth', '-P', os.path.dirname(umt_path)]
                 subprocess.run(wget_command, check=True)
             submodules_dict[dimension] = [umt_path,]
         elif dimension == 'temporal_flickering':
@@ -271,7 +271,7 @@ def init_submodules(dimension_list, local=False, read_frame=False):
             if not os.path.isfile(details['ckpt']):
                 print(f"File {details['ckpt']} does not exist. Downloading...")
                 wget_command = ['wget', '-P', os.path.dirname(details['ckpt']),
-                                'https://huggingface.co/lalala125/AMT/resolve/main/amt-s.pth']
+                                'https://hf-mirror.com/lalala125/AMT/resolve/main/amt-s.pth']
                 subprocess.run(wget_command, check=True)
 
         elif dimension == 'dynamic_degree':
@@ -340,7 +340,7 @@ def init_submodules(dimension_list, local=False, read_frame=False):
                 "model_weight": f'{CACHE_DIR}/grit_model/grit_b_densecap_objectdet.pth'
             }
             if not os.path.exists(submodules_dict[dimension]['model_weight']):
-                wget_command = ['wget', 'https://huggingface.co/OpenGVLab/VBench_Used_Models/resolve/main/grit_b_densecap_objectdet.pth', '-P', os.path.dirname(submodules_dict[dimension]["model_weight"])]
+                wget_command = ['wget', 'https://hf-mirror.com/OpenGVLab/VBench_Used_Models/resolve/main/grit_b_densecap_objectdet.pth', '-P', os.path.dirname(submodules_dict[dimension]["model_weight"])]
                 subprocess.run(wget_command, check=True)
         elif dimension == 'scene':
             submodules_dict[dimension] = {
@@ -349,7 +349,7 @@ def init_submodules(dimension_list, local=False, read_frame=False):
                 "vit":"swin_b"
             }
             if not os.path.exists(submodules_dict[dimension]['pretrained']):
-                wget_command = ['wget', 'https://huggingface.co/spaces/xinyu1205/recognize-anything/resolve/main/tag2text_swin_14m.pth', '-P', os.path.dirname(submodules_dict[dimension]["pretrained"])]
+                wget_command = ['wget', 'https://hf-mirror.com/spaces/xinyu1205/recognize-anything/resolve/main/tag2text_swin_14m.pth', '-P', os.path.dirname(submodules_dict[dimension]["pretrained"])]
                 subprocess.run(wget_command, check=True)
         elif dimension == 'appearance_style':
             if local:
@@ -364,7 +364,7 @@ def init_submodules(dimension_list, local=False, read_frame=False):
                 "pretrain": f'{CACHE_DIR}/ViCLIP/ViClip-InternVid-10M-FLT.pth',
             }
             if not os.path.exists(submodules_dict[dimension]['pretrain']):
-                wget_command = ['wget', 'https://huggingface.co/OpenGVLab/VBench_Used_Models/resolve/main/ViClip-InternVid-10M-FLT.pth', '-P', os.path.dirname(submodules_dict[dimension]["pretrain"])]
+                wget_command = ['wget', 'https://hf-mirror.com/OpenGVLab/VBench_Used_Models/resolve/main/ViClip-InternVid-10M-FLT.pth', '-P', os.path.dirname(submodules_dict[dimension]["pretrain"])]
                 subprocess.run(wget_command, check=True)
 
         if get_rank() == 0:
