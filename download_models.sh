@@ -24,7 +24,7 @@ mkdir -p "$CACHE_DIR/aesthetic_model/emb_reader"
 if [ ! -f "$CACHE_DIR/aesthetic_model/emb_reader/sa_0_4_vit_l_14_linear.pth" ]; then
     echo "[1/5] Downloading aesthetic linear head ..."
     wget -q --show-progress -O "$CACHE_DIR/aesthetic_model/emb_reader/sa_0_4_vit_l_14_linear.pth" \
-        "https://raw.githubusercontent.com/LAION-AI/aesthetic-predictor/main/sa_0_4_vit_l_14_linear.pth"
+        "https://huggingface.co/OpenGVLab/VBench_Used_Models/resolve/main/sa_0_4_vit_l_14_linear.pth"
 else
     echo "[1/5] Aesthetic linear head already exists, skipping."
 fi
