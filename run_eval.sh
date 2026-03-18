@@ -53,36 +53,54 @@ OUTPUT_DIR="$VIDEO_DIR"
 PROMPT_JSON="$OUTPUT_DIR/prompt_map.json"
 
 python3 -c "
-import os, json, sys
+import os, json, sys, re
 
 video_dir = sys.argv[1]
 prompt_txt = sys.argv[2]
 output_json = sys.argv[3]
 
-# collect video files, sorted
+def first_n_words(text, n=5):
+    words = re.findall(r'[a-zA-Z0-9]+', text.lower())
+    return tuple(words[:n])
+
+# collect video files
 exts = {'.mp4', '.gif'}
-videos = sorted([
+videos = [
     f for f in os.listdir(video_dir)
     if os.path.splitext(f)[1].lower() in exts
-])
+]
 
 # read prompts (skip empty lines)
 with open(prompt_txt, 'r', encoding='utf-8') as f:
     prompts = [line.strip() for line in f if line.strip()]
 
-if len(prompts) != len(videos):
-    print(f'Error: {len(prompts)} prompts but {len(videos)} videos found.')
-    print(f'Videos: {videos[:5]}...' if len(videos) > 5 else f'Videos: {videos}')
-    sys.exit(1)
+# build lookup: first 5 words of prompt -> prompt
+prompt_lookup = {}
+for p in prompts:
+    key = first_n_words(p)
+    prompt_lookup[key] = p
 
+# match each video filename to a prompt by first 5 words
 mapping = {}
-for filename, prompt in zip(videos, prompts):
-    mapping[filename] = prompt
+unmatched = []
+for filename in videos:
+    name = os.path.splitext(filename)[0]
+    key = first_n_words(name)
+    if key in prompt_lookup:
+        mapping[filename] = prompt_lookup[key]
+    else:
+        unmatched.append(filename)
+
+if unmatched:
+    print(f'Warning: {len(unmatched)} videos could not be matched:')
+    for f in unmatched:
+        print(f'  {f}')
+    sys.exit(1)
 
 with open(output_json, 'w', encoding='utf-8') as f:
     json.dump(mapping, f, indent=2, ensure_ascii=False)
 
-print(f'Mapped {len(mapping)} videos to prompts.')
+print(f'Matched {len(mapping)} videos to prompts (by first 5 words).')
 " "$VIDEO_DIR" "$PROMPT_TXT" "$PROMPT_JSON"
 
 echo "==> Video folder : $VIDEO_DIR"
