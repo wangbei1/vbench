@@ -9,7 +9,7 @@
 #   prompt_txt    - a text file with one prompt per line, matched to videos
 #                   by sorted order (line 1 -> 1st video alphabetically, etc.)
 #
-# Results JSON will be saved into <video_folder>/vbench_results/
+# Results JSON will be saved directly into <video_folder>/
 
 set -e
 
@@ -22,8 +22,8 @@ if [ -z "$1" ] || [ -z "$2" ]; then
     exit 1
 fi
 
-VIDEO_DIR="$(realpath "$1")"
-PROMPT_TXT="$(realpath "$2")"
+VIDEO_DIR="$1"
+PROMPT_TXT="$2"
 shift 2
 
 NGPUS=1
@@ -45,13 +45,12 @@ fi
 
 DIMENSIONS="aesthetic_quality subject_consistency overall_consistency motion_smoothness dynamic_degree"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-OUTPUT_DIR="$VIDEO_DIR/vbench_results"
+OUTPUT_DIR="$VIDEO_DIR"
 
 # ── Build prompt JSON ────────────────────────────────────────────
-# VBench --prompt_file expects: {"<video_folder>/<filename>": "prompt", ...}
+# VBench --prompt_file expects: {"filename": "prompt", ...}
 # We match prompts to videos by sorted filename order.
 PROMPT_JSON="$OUTPUT_DIR/prompt_map.json"
-mkdir -p "$OUTPUT_DIR"
 
 python3 -c "
 import os, json, sys
@@ -88,10 +87,9 @@ print(f'Mapped {len(mapping)} videos to prompts.')
 
 echo "==> Video folder : $VIDEO_DIR"
 echo "==> Prompt file  : $PROMPT_TXT"
-echo "==> Prompt JSON  : $PROMPT_JSON"
 echo "==> Dimensions   : $DIMENSIONS"
 echo "==> GPUs         : $NGPUS"
-echo "==> Output       : $OUTPUT_DIR"
+echo "==> Output       : $VIDEO_DIR (same as video folder)"
 echo ""
 
 # ── Run evaluation ───────────────────────────────────────────────
@@ -117,4 +115,4 @@ fi
 
 echo ""
 echo "==> Evaluation complete! Results saved to:"
-ls -lh "$OUTPUT_DIR"/*.json 2>/dev/null || echo "(no JSON found)"
+ls -lh "$VIDEO_DIR"/*.json 2>/dev/null || echo "(no JSON found)"
