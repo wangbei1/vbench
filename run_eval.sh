@@ -78,7 +78,7 @@ if len(prompts) != len(videos):
 
 mapping = {}
 for filename, prompt in zip(videos, prompts):
-    mapping[os.path.join(video_dir, filename)] = prompt
+    mapping[filename] = prompt
 
 with open(output_json, 'w', encoding='utf-8') as f:
     json.dump(mapping, f, indent=2, ensure_ascii=False)
