@@ -122,11 +122,22 @@ for idx, filenames in index_to_files.items():
         for fn in filenames:
             dim_maps[dim][fn] = prompt
 
-# Write per-dimension JSON files
+# Write per-dimension JSON files and create symlink subdirectories
 for dim, mapping in sorted(dim_maps.items()):
+    # prompt_map.json
     out_path = os.path.join(output_dir, f'prompt_map_{dim}.json')
     with open(out_path, 'w', encoding='utf-8') as f:
         json.dump(mapping, f, indent=2, ensure_ascii=False)
+
+    # Create symlink directory with only this dimension's videos
+    dim_video_dir = os.path.join(output_dir, f'videos_{dim}')
+    os.makedirs(dim_video_dir, exist_ok=True)
+    for fn in mapping:
+        src = os.path.join(video_dir, fn)
+        dst = os.path.join(dim_video_dir, fn)
+        if not os.path.exists(dst):
+            os.symlink(src, dst)
+
     print(f'  {dim}: {len(mapping)} videos')
 " "$VIDEO_DIR" "$FULL_INFO" "$ALL_PROMPTS" "$OUTPUT_DIR"
 
@@ -137,8 +148,9 @@ cd "$SCRIPT_DIR"
 
 for DIM in "${ALL_DIMENSIONS[@]}"; do
     PROMPT_MAP="$OUTPUT_DIR/prompt_map_${DIM}.json"
-    if [ ! -f "$PROMPT_MAP" ]; then
-        echo "==> SKIP $DIM (no prompt map found)"
+    DIM_VIDEO_DIR="$OUTPUT_DIR/videos_${DIM}"
+    if [ ! -f "$PROMPT_MAP" ] || [ ! -d "$DIM_VIDEO_DIR" ]; then
+        echo "==> SKIP $DIM (no prompt map or video dir found)"
         continue
     fi
 
@@ -148,7 +160,7 @@ for DIM in "${ALL_DIMENSIONS[@]}"; do
 
     if [ "$NGPUS" -gt 1 ]; then
         torchrun --nproc_per_node="$NGPUS" -m vbench.launch.evaluate \
-            --videos_path "$VIDEO_DIR" \
+            --videos_path "$DIM_VIDEO_DIR" \
             --dimension "$DIM" \
             --mode custom_input \
             --prompt_file "$PROMPT_MAP" \
@@ -157,7 +169,7 @@ for DIM in "${ALL_DIMENSIONS[@]}"; do
         || echo "  WARNING: $DIM evaluation failed, continuing..."
     else
         python -m vbench.launch.evaluate \
-            --videos_path "$VIDEO_DIR" \
+            --videos_path "$DIM_VIDEO_DIR" \
             --dimension "$DIM" \
             --mode custom_input \
             --prompt_file "$PROMPT_MAP" \
