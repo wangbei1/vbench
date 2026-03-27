@@ -55,6 +55,9 @@ ALL_DIMENSIONS=(
     overall_consistency
 )
 
+# Dimensions that require vbench_standard mode (need extra info from prompt)
+STANDARD_DIMS="object_class multiple_objects color spatial_relationship scene appearance_style"
+
 echo "============================================================"
 echo "  VBench Full Evaluation"
 echo "============================================================"
@@ -76,6 +79,9 @@ full_info_path = sys.argv[2]
 all_prompts_path = sys.argv[3]
 output_dir = sys.argv[4]
 
+# Dimensions that need vbench_standard mode (prompt-named symlinks)
+STANDARD_DIMS = {'object_class', 'multiple_objects', 'color', 'spatial_relationship', 'scene', 'appearance_style'}
+
 # Read all_dimension.txt to get prompt list (index -> prompt)
 with open(all_prompts_path, 'r', encoding='utf-8') as f:
     all_prompts = [line.strip() for line in f if line.strip()]
@@ -94,23 +100,34 @@ video_files = sorted(glob.glob(os.path.join(video_dir, '*.mp4')))
 if not video_files:
     video_files = sorted(glob.glob(os.path.join(video_dir, '*.gif')))
 
-# Parse video filenames: XXXX_seedY.ext -> index XXXX
+postfix = os.path.splitext(video_files[0])[1] if video_files else '.mp4'
+
+# Parse video filenames: XXXX_seedY.ext -> (index, seed)
 index_to_files = defaultdict(list)
 for vf in video_files:
     basename = os.path.basename(vf)
     name = os.path.splitext(basename)[0]
-    idx_str = name.split('_')[0]
-    try:
-        idx = int(idx_str)
-        index_to_files[idx].append(basename)
-    except ValueError:
-        print(f'  Warning: cannot parse index from {basename}, skipping')
+    parts = name.split('_seed')
+    if len(parts) == 2:
+        try:
+            idx = int(parts[0])
+            seed = int(parts[1])
+            index_to_files[idx].append((basename, seed))
+        except ValueError:
+            print(f'  Warning: cannot parse {basename}, skipping')
+    else:
+        idx_str = name.split('_')[0]
+        try:
+            idx = int(idx_str)
+            index_to_files[idx].append((basename, len(index_to_files.get(idx, []))))
+        except ValueError:
+            print(f'  Warning: cannot parse index from {basename}, skipping')
 
 print(f'  Found {len(video_files)} video files, {len(index_to_files)} unique prompts')
 
-# Build per-dimension prompt maps
-dim_maps = defaultdict(dict)
-for idx, filenames in index_to_files.items():
+# Build per-dimension maps
+dim_maps = defaultdict(dict)  # dim -> {filename: prompt}
+for idx, file_seed_list in index_to_files.items():
     if idx >= len(all_prompts):
         continue
     prompt = all_prompts[idx]
@@ -119,26 +136,36 @@ for idx, filenames in index_to_files.items():
         print(f'  Warning: prompt {idx} not found in VBench_full_info.json: {prompt[:60]}...')
         continue
     for dim in dims:
-        for fn in filenames:
-            dim_maps[dim][fn] = prompt
+        for fn, seed in file_seed_list:
+            dim_maps[dim][(fn, seed)] = prompt
 
 # Write per-dimension JSON files and create symlink subdirectories
 for dim, mapping in sorted(dim_maps.items()):
-    # prompt_map.json
-    out_path = os.path.join(output_dir, f'prompt_map_{dim}.json')
-    with open(out_path, 'w', encoding='utf-8') as f:
-        json.dump(mapping, f, indent=2, ensure_ascii=False)
-
-    # Create symlink directory with only this dimension's videos
     dim_video_dir = os.path.join(output_dir, f'videos_{dim}')
     os.makedirs(dim_video_dir, exist_ok=True)
-    for fn in mapping:
-        src = os.path.join(video_dir, fn)
-        dst = os.path.join(dim_video_dir, fn)
-        if not os.path.exists(dst):
-            os.symlink(src, dst)
 
-    print(f'  {dim}: {len(mapping)} videos')
+    if dim in STANDARD_DIMS:
+        # vbench_standard mode: create symlinks named {prompt}-{i}.mp4
+        for (fn, seed), prompt in mapping.items():
+            standard_name = f'{prompt}-{seed}{postfix}'
+            src = os.path.join(video_dir, fn)
+            dst = os.path.join(dim_video_dir, standard_name)
+            if not os.path.exists(dst):
+                os.symlink(src, dst)
+    else:
+        # custom_input mode: keep original names + prompt_map.json
+        prompt_map = {}
+        for (fn, seed), prompt in mapping.items():
+            prompt_map[fn] = prompt
+            src = os.path.join(video_dir, fn)
+            dst = os.path.join(dim_video_dir, fn)
+            if not os.path.exists(dst):
+                os.symlink(src, dst)
+        out_path = os.path.join(output_dir, f'prompt_map_{dim}.json')
+        with open(out_path, 'w', encoding='utf-8') as f:
+            json.dump(prompt_map, f, indent=2, ensure_ascii=False)
+
+    print(f'  {dim}: {len(mapping)} videos {\"(standard mode)\" if dim in STANDARD_DIMS else \"(custom mode)\"}')
 " "$VIDEO_DIR" "$FULL_INFO" "$ALL_PROMPTS" "$OUTPUT_DIR"
 
 echo ""
@@ -147,36 +174,57 @@ echo ""
 cd "$SCRIPT_DIR"
 
 for DIM in "${ALL_DIMENSIONS[@]}"; do
-    PROMPT_MAP="$OUTPUT_DIR/prompt_map_${DIM}.json"
     DIM_VIDEO_DIR="$OUTPUT_DIR/videos_${DIM}"
-    if [ ! -f "$PROMPT_MAP" ] || [ ! -d "$DIM_VIDEO_DIR" ]; then
-        echo "==> SKIP $DIM (no prompt map or video dir found)"
+    if [ ! -d "$DIM_VIDEO_DIR" ]; then
+        echo "==> SKIP $DIM (no video dir found)"
         continue
     fi
 
+    # Determine mode: standard for dims needing extra info, custom for others
+    IS_STANDARD=false
+    for SD in $STANDARD_DIMS; do
+        if [ "$DIM" = "$SD" ]; then
+            IS_STANDARD=true
+            break
+        fi
+    done
+
     echo "========================================"
-    echo "  Evaluating: $DIM"
+    if $IS_STANDARD; then
+        echo "  Evaluating: $DIM (vbench_standard mode)"
+    else
+        echo "  Evaluating: $DIM (custom_input mode)"
+    fi
     echo "========================================"
 
-    if [ "$NGPUS" -gt 1 ]; then
-        torchrun --nproc_per_node="$NGPUS" -m vbench.launch.evaluate \
-            --videos_path "$DIM_VIDEO_DIR" \
-            --dimension "$DIM" \
-            --mode custom_input \
-            --prompt_file "$PROMPT_MAP" \
-            --output_path "$OUTPUT_DIR" \
-            --load_ckpt_from_local True \
-        || echo "  WARNING: $DIM evaluation failed, continuing..."
+    if $IS_STANDARD; then
+        # vbench_standard mode: videos named {prompt}-{i}.mp4, no prompt_file
+        EVAL_CMD="python -m vbench.launch.evaluate \
+            --videos_path $DIM_VIDEO_DIR \
+            --dimension $DIM \
+            --mode vbench_standard \
+            --output_path $OUTPUT_DIR \
+            --load_ckpt_from_local True"
     else
-        python -m vbench.launch.evaluate \
-            --videos_path "$DIM_VIDEO_DIR" \
-            --dimension "$DIM" \
+        PROMPT_MAP="$OUTPUT_DIR/prompt_map_${DIM}.json"
+        if [ ! -f "$PROMPT_MAP" ]; then
+            echo "==> SKIP $DIM (no prompt map found)"
+            continue
+        fi
+        EVAL_CMD="python -m vbench.launch.evaluate \
+            --videos_path $DIM_VIDEO_DIR \
+            --dimension $DIM \
             --mode custom_input \
-            --prompt_file "$PROMPT_MAP" \
-            --output_path "$OUTPUT_DIR" \
-            --load_ckpt_from_local True \
-        || echo "  WARNING: $DIM evaluation failed, continuing..."
+            --prompt_file $PROMPT_MAP \
+            --output_path $OUTPUT_DIR \
+            --load_ckpt_from_local True"
     fi
+
+    if [ "$NGPUS" -gt 1 ]; then
+        EVAL_CMD="${EVAL_CMD/python -m/torchrun --nproc_per_node=$NGPUS -m}"
+    fi
+
+    eval $EVAL_CMD || echo "  WARNING: $DIM evaluation failed, continuing..."
     echo ""
 done
 
