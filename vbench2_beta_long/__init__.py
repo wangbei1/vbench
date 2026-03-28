@@ -3,6 +3,7 @@ import re
 import importlib
 from itertools import chain
 from pathlib import Path
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from vbench.utils import get_prompt_from_filename, init_submodules, save_json, load_json
 from vbench2_beta_long.utils import split_video_into_scenes, split_video_into_clips, load_clip_lengths, get_duration_from_json
 from vbench2_beta_long.temporal_flickering import filter_static_clips
@@ -51,10 +52,12 @@ class VBenchLong(VBench):
         dimension_clip_length_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", kwargs['clip_length_config'])
         dimension_clip_length = load_clip_lengths(dimension_clip_length_config_path)
 
-        # split video into clips
+        # split video into clips (parallel)
         base_output_dir = os.path.join(videos_path, "split_clip")
         os.makedirs(base_output_dir, exist_ok=True)
 
+        # Collect tasks
+        split_tasks = []
         for video_file in os.listdir(videos_path):
             video_path = os.path.join(videos_path, video_file)
 
@@ -70,12 +73,22 @@ class VBenchLong(VBench):
                 video_scenes_path = os.path.join(os.path.dirname(video_path), "split_scene", video_name)
                 for video_scene_path in os.listdir(video_scenes_path):
                     video_scene_path = os.path.join(video_scenes_path, video_scene_path)
-                    split_video_into_clips(video_scene_path, base_output_dir, int(duration), fps=8)
-
+                    split_tasks.append((video_scene_path, base_output_dir, int(duration), 8))
             else:
-                split_video_into_clips(video_path, base_output_dir, int(duration), fps=8)
+                split_tasks.append((video_path, base_output_dir, int(duration), 8))
 
-        # finally, got floders under videos_path, which contain clips of each video
+        max_workers = min(len(split_tasks), os.cpu_count() or 4)
+        print(f"Splitting {len(split_tasks)} videos using {max_workers} workers...")
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(split_video_into_clips, *task): task[0] for task in split_tasks}
+            for future in as_completed(futures):
+                video_path = futures[future]
+                try:
+                    future.result()
+                except Exception as e:
+                    print(f"Failed to split {video_path}: {e}")
+
+        # finally, got folders under videos_path, which contain clips of each video
         print(f"Splitting videos into clips in {base_output_dir}")
 
 
