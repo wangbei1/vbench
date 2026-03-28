@@ -41,7 +41,7 @@ def build_dict():
     return results
 
 
-def human_action(umt_path, video_list, device):
+def human_action(umt_path, video_list, device, video_prompt_map=None):
     state_dict = torch.load(umt_path, map_location='cpu')
     model = create_model(
         "vit_large_patch16_224",
@@ -75,7 +75,10 @@ def human_action(umt_path, video_list, device):
     video_results = []
     for video_path in tqdm(video_list, disable=get_rank() > 0):
         cor_num_per_video = 0
-        video_label_ls = video_path.split('/')[-1].lower().split('-')[0].split("person is ")[-1].split('_')[0]
+        if video_prompt_map and video_path in video_prompt_map:
+            video_label_ls = video_prompt_map[video_path].lower().split("person is ")[-1].split('_')[0]
+        else:
+            video_label_ls = video_path.split('/')[-1].lower().split('-')[0].split("person is ")[-1].split('_')[0]
         cnt += 1
         images = load_video(video_path, data_transform, num_frames=16)
         images = images.unsqueeze(0)
@@ -112,9 +115,14 @@ def human_action(umt_path, video_list, device):
 
 def compute_human_action(json_dir, device, submodules_list, **kwargs):
     umt_path = submodules_list[0]
-    video_list, _ = load_dimension_info(json_dir, dimension='human_action', lang='en')
+    video_list, prompt_dict_ls = load_dimension_info(json_dir, dimension='human_action', lang='en')
+    # Build video_path -> prompt mapping for label extraction
+    video_prompt_map = {}
+    for item in prompt_dict_ls:
+        for vpath in item['video_list']:
+            video_prompt_map[vpath] = item['prompt']
     video_list = distribute_list_to_rank(video_list)
-    all_results, video_results = human_action(umt_path, video_list, device)
+    all_results, video_results = human_action(umt_path, video_list, device, video_prompt_map=video_prompt_map)
     if get_world_size() > 1:
         video_results = gather_list_of_dict(video_results)
         all_results = sum([d['cor_num_per_video'] for d in video_results]) / len(video_results)
