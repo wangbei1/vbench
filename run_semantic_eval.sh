@@ -1,8 +1,13 @@
 #!/bin/bash
-# Run only the 9 Semantic dimensions of VBench evaluation.
+# Run Semantic dimensions of VBench evaluation.
 #
 # Usage:
-#   bash run_semantic_eval.sh <video_folder>
+#   bash run_semantic_eval.sh <video_folder> [dimension ...]
+#
+# Examples:
+#   bash run_semantic_eval.sh /path/to/videos                   # all 9 semantic dims
+#   bash run_semantic_eval.sh /path/to/videos human_action      # only human_action
+#   bash run_semantic_eval.sh /path/to/videos human_action scene color
 #
 # Video naming convention:
 #   <video_folder>/XXXX_seedY.mp4
@@ -11,11 +16,12 @@ set -e
 export TORCH_CUDNN_V8_API_DISABLED=1
 
 if [ -z "$1" ]; then
-    echo "Usage: bash run_semantic_eval.sh <video_folder>"
+    echo "Usage: bash run_semantic_eval.sh <video_folder> [dimension ...]"
     exit 1
 fi
 
 VIDEO_DIR="$(cd "$1" && pwd)"
+shift
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 FULL_INFO="$SCRIPT_DIR/vbench/VBench_full_info.json"
 ALL_PROMPTS="$SCRIPT_DIR/prompts/all_dimension.txt"
@@ -23,17 +29,37 @@ OUTPUT_DIR="$VIDEO_DIR/vbench_results"
 
 mkdir -p "$OUTPUT_DIR"
 
-# Semantic dimensions
-CUSTOM_DIMS=(human_action temporal_style overall_consistency)
-STANDARD_DIMS=(object_class multiple_objects color spatial_relationship scene appearance_style)
+# All semantic dimensions
+ALL_CUSTOM_DIMS=(human_action temporal_style overall_consistency)
+ALL_STANDARD_DIMS=(object_class multiple_objects color spatial_relationship scene appearance_style)
+
+# Filter by user-specified dimensions (if any)
+if [ $# -gt 0 ]; then
+    CUSTOM_DIMS=()
+    STANDARD_DIMS=()
+    for dim in "$@"; do
+        for d in "${ALL_CUSTOM_DIMS[@]}"; do
+            if [ "$dim" = "$d" ]; then CUSTOM_DIMS+=("$dim"); fi
+        done
+        for d in "${ALL_STANDARD_DIMS[@]}"; do
+            if [ "$dim" = "$d" ]; then STANDARD_DIMS+=("$dim"); fi
+        done
+    done
+else
+    CUSTOM_DIMS=("${ALL_CUSTOM_DIMS[@]}")
+    STANDARD_DIMS=("${ALL_STANDARD_DIMS[@]}")
+fi
+
+ALL_SEMANTIC=("${CUSTOM_DIMS[@]}" "${STANDARD_DIMS[@]}")
 
 ALL_SEMANTIC=("${CUSTOM_DIMS[@]}" "${STANDARD_DIMS[@]}")
 
 echo "============================================================"
-echo "  VBench Semantic Evaluation (9 dimensions)"
+echo "  VBench Semantic Evaluation (${#ALL_SEMANTIC[@]} dimensions)"
 echo "============================================================"
 echo "Video folder : $VIDEO_DIR"
 echo "Output       : $OUTPUT_DIR"
+echo "Dimensions   : ${ALL_SEMANTIC[*]}"
 echo ""
 
 # ── Step 1: Build per-dimension video dirs and prompt maps ─────
