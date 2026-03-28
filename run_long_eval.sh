@@ -65,6 +65,7 @@ for DIM in "${DIMS[@]}"; do
         --mode long_custom_input \
         --output_path "$OUTPUT_DIR" \
         --load_ckpt_from_local True \
+        --dev_flag \
     || echo "  WARNING: $DIM failed"
     echo ""
 done
