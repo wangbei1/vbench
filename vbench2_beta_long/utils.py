@@ -197,11 +197,18 @@ def reorganize_clips_results(detailed_results, dimension=None):
 
     prompt_scores = defaultdict(list)
     for video_result in detailed_results:
-        # Extracting the prompt name (long video name) from the path
-        prompt_name = os.path.basename((video_result['video_path'])).split('_')[0]
-
-        long_video_path = video_result['video_path'].split("filtered_clips")[0]
-        prompt_name = os.path.join(long_video_path, prompt_name) + ".mp4"
+        # Group clips by their parent directory (= original video name)
+        clip_path = video_result['video_path']
+        if "filtered_clips" in clip_path:
+            # temporal_flickering static filter: .../filtered_clips/{video_name}/{clip}.mp4
+            parts = clip_path.split("filtered_clips")
+            base = parts[0]
+            video_name = os.path.basename(os.path.dirname(clip_path))
+        else:
+            # normal: .../split_clip/{video_name}/{clip}.mp4
+            video_name = os.path.basename(os.path.dirname(clip_path))
+            base = clip_path.split("split_clip")[0] if "split_clip" in clip_path else os.path.dirname(os.path.dirname(clip_path))
+        prompt_name = os.path.join(base, video_name + ".mp4")
         prompt_scores[prompt_name].append(video_result['video_results'])
 
     average_scores_list = []
