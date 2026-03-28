@@ -77,7 +77,7 @@ class VBenchLong(VBench):
             else:
                 split_tasks.append((video_path, base_output_dir, int(duration), 8))
 
-        max_workers = min(len(split_tasks), os.cpu_count() or 4)
+        max_workers = min(len(split_tasks), min(os.cpu_count() or 4, 16))
         print(f"Splitting {len(split_tasks)} videos using {max_workers} workers...")
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             futures = {executor.submit(split_video_into_clips, *task): task[0] for task in split_tasks}
