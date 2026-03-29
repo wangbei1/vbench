@@ -146,6 +146,66 @@ for dim, mapping in sorted(dim_maps.items()):
 
 echo ""
 
+# ── Helper: print current scores ─────────────────────────────
+print_scores() {
+    python3 -c "
+import json, os, sys, glob
+
+output_dir = sys.argv[1]
+
+SEMANTIC_LIST = [
+    'object class', 'multiple objects', 'human action', 'color',
+    'spatial relationship', 'scene', 'appearance style', 'temporal style',
+    'overall consistency'
+]
+NORMALIZE_DIC = {
+    'object class': {'Min': 0.0, 'Max': 1.0},
+    'multiple objects': {'Min': 0.0, 'Max': 1.0},
+    'human action': {'Min': 0.0, 'Max': 1.0},
+    'color': {'Min': 0.0, 'Max': 1.0},
+    'spatial relationship': {'Min': 0.0, 'Max': 1.0},
+    'scene': {'Min': 0.0, 'Max': 0.8222},
+    'appearance style': {'Min': 0.0009, 'Max': 0.2855},
+    'temporal style': {'Min': 0.0, 'Max': 0.364},
+    'overall consistency': {'Min': 0.0, 'Max': 0.364}
+}
+
+raw_scores = {}
+for rf in glob.glob(os.path.join(output_dir, 'results_*_eval_results.json')):
+    with open(rf) as f:
+        data = json.load(f)
+    for key, val in data.items():
+        dim_name = key.replace('_', ' ')
+        if dim_name in SEMANTIC_LIST:
+            if isinstance(val, list) and len(val) > 0:
+                raw_scores[dim_name] = val[0]
+            elif isinstance(val, (int, float)):
+                raw_scores[dim_name] = val
+
+if not raw_scores:
+    return
+
+normalized = {}
+for dim in SEMANTIC_LIST:
+    if dim not in raw_scores:
+        continue
+    mn = NORMALIZE_DIC[dim]['Min']
+    mx = NORMALIZE_DIC[dim]['Max']
+    normalized[dim] = (raw_scores[dim] - mn) / (mx - mn)
+
+s_dims = [d for d in SEMANTIC_LIST if d in normalized]
+semantic = sum(normalized[d] for d in s_dims) / len(s_dims) if s_dims else 0
+
+print()
+print('-' * 55)
+for dim in SEMANTIC_LIST:
+    if dim in raw_scores:
+        print(f'  {dim:<25s} {raw_scores[dim]*100:>10.2f}')
+print(f'  Semantic={semantic*100:.2f} ({len(s_dims)}/9)')
+print('-' * 55)
+" "$OUTPUT_DIR"
+}
+
 # ── Step 2: Run evaluation ────────────────────────────────────
 cd "$SCRIPT_DIR"
 
@@ -168,6 +228,7 @@ for DIM in "${CUSTOM_DIMS[@]}"; do
         --output_path "$OUTPUT_DIR" \
         --load_ckpt_from_local True \
     || echo "  WARNING: $DIM failed"
+    print_scores
     echo ""
 done
 
@@ -188,6 +249,7 @@ for DIM in "${STANDARD_DIMS[@]}"; do
         --output_path "$OUTPUT_DIR" \
         --load_ckpt_from_local True \
     || echo "  WARNING: $DIM failed"
+    print_scores
     echo ""
 done
 

@@ -129,6 +129,64 @@ for dim, mapping in sorted(dim_maps.items()):
 
 echo ""
 
+# ── Helper: print current scores ─────────────────────────────
+print_scores() {
+    python3 -c "
+import json, os, sys, glob
+
+output_dir = sys.argv[1]
+
+QUALITY_LIST = [
+    'subject consistency', 'background consistency', 'temporal flickering',
+    'motion smoothness', 'dynamic degree', 'aesthetic quality', 'imaging quality'
+]
+DIM_WEIGHT = {d: (0.5 if d == 'dynamic degree' else 1.0) for d in QUALITY_LIST}
+NORMALIZE_DIC = {
+    'subject consistency': {'Min': 0.1462, 'Max': 1.0},
+    'background consistency': {'Min': 0.2615, 'Max': 1.0},
+    'temporal flickering': {'Min': 0.6293, 'Max': 1.0},
+    'motion smoothness': {'Min': 0.706, 'Max': 0.9975},
+    'dynamic degree': {'Min': 0.0, 'Max': 1.0},
+    'aesthetic quality': {'Min': 0.0, 'Max': 1.0},
+    'imaging quality': {'Min': 0.0, 'Max': 1.0},
+}
+
+raw_scores = {}
+for rf in glob.glob(os.path.join(output_dir, 'results_*_eval_results.json')):
+    with open(rf) as f:
+        data = json.load(f)
+    for key, val in data.items():
+        dim_name = key.replace('_', ' ')
+        if dim_name in QUALITY_LIST:
+            if isinstance(val, list) and len(val) > 0:
+                raw_scores[dim_name] = val[0]
+            elif isinstance(val, (int, float)):
+                raw_scores[dim_name] = val
+
+if not raw_scores:
+    return
+
+normalized = {}
+for dim in QUALITY_LIST:
+    if dim not in raw_scores:
+        continue
+    mn = NORMALIZE_DIC[dim]['Min']
+    mx = NORMALIZE_DIC[dim]['Max']
+    normalized[dim] = (raw_scores[dim] - mn) / (mx - mn) * DIM_WEIGHT[dim]
+
+q_dims = [d for d in QUALITY_LIST if d in normalized]
+quality = sum(normalized[d] for d in q_dims) / sum(DIM_WEIGHT[d] for d in q_dims) if q_dims else 0
+
+print()
+print('-' * 55)
+for dim in QUALITY_LIST:
+    if dim in raw_scores:
+        print(f'  {dim:<25s} {raw_scores[dim]*100:>10.2f}')
+print(f'  Quality={quality*100:.2f} ({len(q_dims)}/7)')
+print('-' * 55)
+" "$OUTPUT_DIR"
+}
+
 # ── Step 2: Run evaluation ────────────────────────────────────
 cd "$SCRIPT_DIR"
 
@@ -150,6 +208,7 @@ for DIM in "${DIMS[@]}"; do
         --output_path "$OUTPUT_DIR" \
         --load_ckpt_from_local True \
     || echo "  WARNING: $DIM failed"
+    print_scores
     echo ""
 done
 
