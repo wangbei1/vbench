@@ -21,6 +21,7 @@
 
 set -e
 export TORCH_CUDNN_V8_API_DISABLED=1
+export MASTER_PORT=$(shuf -i 29500-39999 -n 1)
 
 if [ -z "$1" ]; then
     echo "Usage: bash run_long_eval.sh <video_folder> [dimension ...]"
@@ -52,6 +53,60 @@ echo "Output       : $OUTPUT_DIR"
 echo "Dimensions   : ${DIMS[*]}"
 echo ""
 
+# ── Helper: print current scores ─────────────────────────────
+print_scores() {
+    python3 -c "
+import json, os, sys, glob
+
+output_dir = sys.argv[1]
+
+NORMALIZE_DIC = {
+    'subject consistency': {'Min': 0.1462, 'Max': 1.0},
+    'background consistency': {'Min': 0.2615, 'Max': 1.0},
+    'motion smoothness': {'Min': 0.706, 'Max': 0.9975},
+    'dynamic degree': {'Min': 0.0, 'Max': 1.0},
+    'aesthetic quality': {'Min': 0.0, 'Max': 1.0},
+    'imaging quality': {'Min': 0.0, 'Max': 1.0},
+}
+DIM_WEIGHT = {d: (0.5 if d == 'dynamic degree' else 1.0) for d in NORMALIZE_DIC}
+
+raw_scores = {}
+for rf in glob.glob(os.path.join(output_dir, 'results_*_eval_results.json')):
+    with open(rf) as f:
+        data = json.load(f)
+    for key, val in data.items():
+        dim_name = key.replace('_', ' ')
+        if dim_name not in NORMALIZE_DIC:
+            continue
+        if isinstance(val, list) and len(val) > 0:
+            raw_scores[dim_name] = val[0]
+        elif isinstance(val, (int, float)):
+            raw_scores[dim_name] = val
+
+if not raw_scores:
+    sys.exit(0)
+
+normalized = {}
+for dim in NORMALIZE_DIC:
+    if dim not in raw_scores:
+        continue
+    mn = NORMALIZE_DIC[dim]['Min']
+    mx = NORMALIZE_DIC[dim]['Max']
+    normalized[dim] = (raw_scores[dim] - mn) / (mx - mn) * DIM_WEIGHT[dim]
+
+avail = [d for d in NORMALIZE_DIC if d in normalized]
+total = sum(normalized[d] for d in avail) / sum(DIM_WEIGHT[d] for d in avail) if avail else 0
+
+print()
+print('-' * 55)
+for dim in NORMALIZE_DIC:
+    if dim in raw_scores:
+        print(f'  {dim:<25s} {raw_scores[dim]*100:>10.2f}')
+print(f'  Total={total*100:.2f} ({len(avail)}/6)')
+print('-' * 55)
+" "$OUTPUT_DIR"
+}
+
 # ── Run evaluation per dimension ──────────────────────────────
 cd "$SCRIPT_DIR"
 
@@ -67,6 +122,7 @@ for DIM in "${DIMS[@]}"; do
         --load_ckpt_from_local True \
         --dev_flag \
     || echo "  WARNING: $DIM failed"
+    print_scores
     echo ""
 done
 
