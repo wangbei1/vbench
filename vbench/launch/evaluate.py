@@ -1,4 +1,8 @@
 import torch
+torch.backends.cuda.enable_cudnn_sdp(False)
+torch.backends.cuda.enable_flash_sdp(False)
+torch.backends.cuda.enable_mem_efficient_sdp(False)
+torch.backends.cuda.enable_math_sdp(True)
 import os
 from vbench import VBench
 from vbench.distributed import dist_init, print0
