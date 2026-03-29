@@ -14,6 +14,7 @@
 
 set -e
 export TORCH_CUDNN_V8_API_DISABLED=1
+export MASTER_PORT=$(shuf -i 29500-39999 -n 1)
 
 if [ -z "$1" ]; then
     echo "Usage: bash run_semantic_eval.sh <video_folder> [dimension ...]"
@@ -183,7 +184,7 @@ for rf in glob.glob(os.path.join(output_dir, 'results_*_eval_results.json')):
                 raw_scores[dim_name] = val
 
 if not raw_scores:
-    return
+    sys.exit(0)
 
 normalized = {}
 for dim in SEMANTIC_LIST:

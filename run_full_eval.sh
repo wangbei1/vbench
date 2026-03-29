@@ -13,6 +13,7 @@ set -e
 # Workaround for cuDNN SDPA compatibility issues on some GPUs
 export TORCH_CUDNN_V8_API_DISABLED=1
 export TORCH_CUDNN_SDPA_ENABLED=0
+export MASTER_PORT=$(shuf -i 29500-39999 -n 1)
 
 if [ -z "$1" ]; then
     echo "Usage: bash run_full_eval.sh <video_folder> [--ngpus N]"
