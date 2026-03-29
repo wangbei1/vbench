@@ -173,6 +173,95 @@ for dim, mapping in sorted(dim_maps.items()):
 
 echo ""
 
+# ── Helper: print current scores from all available results ───
+print_scores() {
+    python3 -c "
+import json, os, sys, glob
+
+output_dir = sys.argv[1]
+
+DIM_WEIGHT = {
+    'subject consistency':1, 'background consistency':1,
+    'temporal flickering':1, 'motion smoothness':1,
+    'aesthetic quality':1, 'imaging quality':1,
+    'dynamic degree':0.5, 'object class':1,
+    'multiple objects':1, 'human action':1,
+    'color':1, 'spatial relationship':1,
+    'scene':1, 'appearance style':1,
+    'temporal style':1, 'overall consistency':1
+}
+
+NORMALIZE_DIC = {
+    'subject consistency': {'Min': 0.1462, 'Max': 1.0},
+    'background consistency': {'Min': 0.2615, 'Max': 1.0},
+    'temporal flickering': {'Min': 0.6293, 'Max': 1.0},
+    'motion smoothness': {'Min': 0.706, 'Max': 0.9975},
+    'dynamic degree': {'Min': 0.0, 'Max': 1.0},
+    'aesthetic quality': {'Min': 0.0, 'Max': 1.0},
+    'imaging quality': {'Min': 0.0, 'Max': 1.0},
+    'object class': {'Min': 0.0, 'Max': 1.0},
+    'multiple objects': {'Min': 0.0, 'Max': 1.0},
+    'human action': {'Min': 0.0, 'Max': 1.0},
+    'color': {'Min': 0.0, 'Max': 1.0},
+    'spatial relationship': {'Min': 0.0, 'Max': 1.0},
+    'scene': {'Min': 0.0, 'Max': 0.8222},
+    'appearance style': {'Min': 0.0009, 'Max': 0.2855},
+    'temporal style': {'Min': 0.0, 'Max': 0.364},
+    'overall consistency': {'Min': 0.0, 'Max': 0.364}
+}
+
+QUALITY_LIST = [
+    'subject consistency', 'background consistency', 'temporal flickering',
+    'motion smoothness', 'aesthetic quality', 'imaging quality', 'dynamic degree'
+]
+SEMANTIC_LIST = [
+    'object class', 'multiple objects', 'human action', 'color',
+    'spatial relationship', 'scene', 'appearance style', 'temporal style',
+    'overall consistency'
+]
+
+raw_scores = {}
+result_files = glob.glob(os.path.join(output_dir, 'results_*_eval_results.json'))
+for rf in result_files:
+    with open(rf) as f:
+        data = json.load(f)
+    for key, val in data.items():
+        dim_name = key.replace('_', ' ')
+        if isinstance(val, list) and len(val) > 0:
+            raw_scores[dim_name] = val[0]
+        elif isinstance(val, (int, float)):
+            raw_scores[dim_name] = val
+
+if not raw_scores:
+    sys.exit(0)
+
+all_dims = QUALITY_LIST + SEMANTIC_LIST
+print()
+print('-' * 60)
+for dim in all_dims:
+    if dim in raw_scores:
+        tag = 'Q' if dim in QUALITY_LIST else 'S'
+        print(f'  [{tag}] {dim:<25s} {raw_scores[dim]*100:>10.2f}')
+
+normalized = {}
+for dim in all_dims:
+    if dim not in raw_scores:
+        continue
+    mn = NORMALIZE_DIC[dim]['Min']
+    mx = NORMALIZE_DIC[dim]['Max']
+    normalized[dim] = (raw_scores[dim] - mn) / (mx - mn) * DIM_WEIGHT[dim]
+
+q_dims = [d for d in QUALITY_LIST if d in normalized]
+s_dims = [d for d in SEMANTIC_LIST if d in normalized]
+quality = sum(normalized[d] for d in q_dims) / sum(DIM_WEIGHT[d] for d in q_dims) if q_dims else 0
+semantic = sum(normalized[d] for d in s_dims) / sum(DIM_WEIGHT[d] for d in s_dims) if s_dims else 0
+total = (4 * quality + 1 * semantic) / 5 if (q_dims and s_dims) else (quality if q_dims else semantic)
+
+print(f'  Quality={quality*100:.2f}({len(q_dims)}/7)  Semantic={semantic*100:.2f}({len(s_dims)}/9)  Total={total*100:.2f}')
+print('-' * 60)
+" "$OUTPUT_DIR"
+}
+
 # ── Step 2: Run evaluation per dimension ──────────────────────
 cd "$SCRIPT_DIR"
 
@@ -228,6 +317,7 @@ for DIM in "${ALL_DIMENSIONS[@]}"; do
     fi
 
     eval $EVAL_CMD || echo "  WARNING: $DIM evaluation failed, continuing..."
+    print_scores
     echo ""
 done
 
