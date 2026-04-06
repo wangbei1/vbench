@@ -44,6 +44,8 @@ def technical_quality(model, video_list, device, **kwargs):
     video_results = []
     for video_path in tqdm(video_list, disable=get_rank() > 0):
         images = load_video(video_path)
+        if images is None:
+            continue
         images = transform(images, preprocess_mode)
         acc_score_video = 0.
         for i in range(len(images)):

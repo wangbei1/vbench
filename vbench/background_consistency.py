@@ -37,6 +37,8 @@ def background_consistency(clip_model, preprocess, video_list, device, read_fram
             images = torch.stack(images)
         else:
             images = load_video(video_path)
+            if images is None:
+                continue
             images = image_transform(images)
         images = images.to(device)
         image_features = clip_model.encode_image(images)
