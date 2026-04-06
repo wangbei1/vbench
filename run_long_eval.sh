@@ -24,12 +24,21 @@ export TORCH_CUDNN_V8_API_DISABLED=1
 export MASTER_PORT=$(shuf -i 29500-39999 -n 1)
 
 if [ -z "$1" ]; then
-    echo "Usage: bash run_long_eval.sh <video_folder> [dimension ...]"
+    echo "Usage: bash run_long_eval.sh <video_folder> [--ngpus N] [dimension ...]"
     exit 1
 fi
 
 VIDEO_DIR="$(cd "$1" && pwd)"
 shift
+
+NGPUS=1
+DIMS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --ngpus) NGPUS="$2"; shift 2 ;;
+        *) DIMS+=("$1"); shift ;;
+    esac
+done
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 OUTPUT_DIR="$VIDEO_DIR/vbench_long_results"
@@ -39,9 +48,7 @@ mkdir -p "$OUTPUT_DIR"
 # Default: all 6 quality dimensions from Table 2
 ALL_DIMS=(subject_consistency background_consistency motion_smoothness dynamic_degree aesthetic_quality imaging_quality)
 
-if [ $# -gt 0 ]; then
-    DIMS=("$@")
-else
+if [ ${#DIMS[@]} -eq 0 ]; then
     DIMS=("${ALL_DIMS[@]}")
 fi
 
@@ -50,6 +57,7 @@ echo "  VBench Long Video Evaluation"
 echo "============================================================"
 echo "Video folder : $VIDEO_DIR"
 echo "Output       : $OUTPUT_DIR"
+echo "GPUs         : $NGPUS"
 echo "Dimensions   : ${DIMS[*]}"
 echo ""
 
@@ -114,14 +122,19 @@ for DIM in "${DIMS[@]}"; do
     echo "========================================"
     echo "  Evaluating: $DIM"
     echo "========================================"
-    python vbench2_beta_long/eval_long.py \
-        --videos_path "$VIDEO_DIR" \
-        --dimension "$DIM" \
+    EVAL_CMD="python vbench2_beta_long/eval_long.py \
+        --videos_path $VIDEO_DIR \
+        --dimension $DIM \
         --mode long_custom_input \
-        --output_path "$OUTPUT_DIR" \
+        --output_path $OUTPUT_DIR \
         --load_ckpt_from_local True \
-        --dev_flag \
-    || echo "  WARNING: $DIM failed"
+        --dev_flag"
+
+    if [ "$NGPUS" -gt 1 ]; then
+        EVAL_CMD="${EVAL_CMD/python /torchrun --nproc_per_node=$NGPUS }"
+    fi
+
+    eval $EVAL_CMD || echo "  WARNING: $DIM failed"
     print_scores
     echo ""
 done
