@@ -11,12 +11,54 @@ Usage:
         /path/to/folder1 /path/to/folder2 ...
 """
 import argparse
+import json
+import math
 import os
+import shutil
+import subprocess
 import sys
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from tqdm import tqdm
+
+
+def get_video_info(video_path):
+    """Return (nb_frames, fps) using ffprobe. Falls back to duration*fps."""
+    try:
+        result = subprocess.run(
+            ['ffprobe', '-v', 'error', '-select_streams', 'v:0',
+             '-show_entries', 'stream=nb_frames,r_frame_rate,duration',
+             '-of', 'json', video_path],
+            capture_output=True, text=True, timeout=30,
+        )
+        data = json.loads(result.stdout)
+        stream = data['streams'][0]
+        num, den = stream['r_frame_rate'].split('/')
+        fps = float(num) / float(den)
+        if 'nb_frames' in stream and stream['nb_frames'].isdigit():
+            nb = int(stream['nb_frames'])
+        else:
+            duration = float(stream.get('duration', 0))
+            nb = int(round(duration * fps))
+        return nb, fps
+    except Exception:
+        return None, None
+
+
+def expected_clip_count(video_path, clip_duration):
+    """Mirror the math in split_video_into_clips to compute expected clips."""
+    nb_frames, fps = get_video_info(video_path)
+    if nb_frames is None or fps is None or fps <= 0:
+        return None
+    segment_frame_count = int(fps * clip_duration)
+    if segment_frame_count <= 0:
+        return None
+    if nb_frames < segment_frame_count:
+        return 1  # saved as single "_full" clip
+    total_segments = nb_frames // segment_frame_count
+    remaining = nb_frames % segment_frame_count
+    return total_segments + (1 if remaining > 0 else 0)
 
 # Make sure vbench2_beta_long is importable
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -29,11 +71,16 @@ def split_one(video_path, split_clip_dir, duration=2):
     from vbench2_beta_long.utils import split_video_into_clips
     video_name = os.path.splitext(os.path.basename(video_path))[0]
     target_dir = os.path.join(split_clip_dir, video_name)
-    # Skip if already fully split (check folder exists and has mp4 files)
+
+    # Skip only if the number of clips matches the expected count exactly
     if os.path.isdir(target_dir):
         existing = [f for f in os.listdir(target_dir) if f.endswith('.mp4')]
-        if len(existing) > 0:
+        expected = expected_clip_count(video_path, duration)
+        if expected is not None and len(existing) == expected:
             return (video_path, True, "skip")
+        # Incomplete split: wipe and redo
+        shutil.rmtree(target_dir, ignore_errors=True)
+
     try:
         split_video_into_clips(video_path, split_clip_dir, duration=duration)
         return (video_path, True, "done")
