@@ -201,17 +201,25 @@ eval_one_folder() {
         echo "  -- $DIM" >> "$log"
         local port
         port=$(shuf -i 29500-39999 -n 1)
+        # Stream eval output through progress_filter.py so we get live
+        # 20/40/60/80% pings in addition to the final DONE line.
+        # PYTHONUNBUFFERED=1 keeps tqdm updates flushing in real-time.
         CUDA_VISIBLE_DEVICES="$gpu" \
         MASTER_PORT="$port" \
+        PYTHONUNBUFFERED=1 \
         python vbench2_beta_long/eval_long.py \
             --videos_path "$vdir" \
             --dimension "$DIM" \
             --mode long_custom_input \
             --output_path "$out" \
             --load_ckpt_from_local True \
-            --dev_flag \
-            >> "$log" 2>&1 \
-            || echo "  WARNING: $DIM failed on $label" >> "$log"
+            --dev_flag 2>&1 \
+          | python3 "$SCRIPT_DIR/progress_filter.py" \
+                --log "$log" \
+                --label "$label" \
+                --dim "$DIM" \
+                --lockfile "$LOCK_FILE" \
+          || echo "  WARNING: $DIM failed on $label" >> "$log"
 
         # Bump progress + print live scores
         echo "done $label $DIM" >> "$PROGRESS_FILE"
