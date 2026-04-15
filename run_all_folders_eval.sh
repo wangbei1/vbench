@@ -204,22 +204,31 @@ eval_one_folder() {
         # Stream eval output through progress_filter.py so we get live
         # 20/40/60/80% pings in addition to the final DONE line.
         # PYTHONUNBUFFERED=1 keeps tqdm updates flushing in real-time.
-        CUDA_VISIBLE_DEVICES="$gpu" \
-        MASTER_PORT="$port" \
-        PYTHONUNBUFFERED=1 \
-        python vbench2_beta_long/eval_long.py \
-            --videos_path "$vdir" \
-            --dimension "$DIM" \
-            --mode long_custom_input \
-            --output_path "$out" \
-            --load_ckpt_from_local True \
-            --dev_flag 2>&1 \
-          | python3 "$SCRIPT_DIR/progress_filter.py" \
-                --log "$log" \
-                --label "$label" \
-                --dim "$DIM" \
-                --lockfile "$LOCK_FILE" \
-          || echo "  WARNING: $DIM failed on $label" >> "$log"
+        # pipefail so an eval crash actually surfaces here instead of
+        # being hidden behind the filter's 0 exit code.
+        local eval_rc=0
+        (
+            set -o pipefail
+            CUDA_VISIBLE_DEVICES="$gpu" \
+            MASTER_PORT="$port" \
+            PYTHONUNBUFFERED=1 \
+            python vbench2_beta_long/eval_long.py \
+                --videos_path "$vdir" \
+                --dimension "$DIM" \
+                --mode long_custom_input \
+                --output_path "$out" \
+                --load_ckpt_from_local True \
+                --dev_flag 2>&1 \
+              | python3 "$SCRIPT_DIR/progress_filter.py" \
+                    --log "$log" \
+                    --label "$label" \
+                    --dim "$DIM" \
+                    --lockfile "$LOCK_FILE"
+        ) || eval_rc=$?
+        if [ "$eval_rc" -ne 0 ]; then
+            echo "  WARNING: $DIM failed on $label (rc=$eval_rc)" >> "$log"
+            say "  !! FAIL  $label  $DIM  (rc=$eval_rc) — see $log"
+        fi
 
         # Bump progress + print live scores
         echo "done $label $DIM" >> "$PROGRESS_FILE"
