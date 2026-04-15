@@ -38,7 +38,7 @@ FOLDERS=(
     "$BASE/Reward-Forcing-T2V-1.3B_180s/Reward-Forcing-T2V-1.3B"
 )
 
-python3 batch_split_videos.py --workers 48 --duration 2 "${FOLDERS[@]}"
+python3 batch_split_videos.py --workers 48 --duration 2 --mem-budget-gb 380 "${FOLDERS[@]}"
 
 echo ""
 echo "Finished at $(date)"

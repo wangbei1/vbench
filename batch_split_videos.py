@@ -24,11 +24,11 @@ from tqdm import tqdm
 
 
 def get_video_info(video_path):
-    """Return (nb_frames, fps) using ffprobe. Falls back to duration*fps."""
+    """Return (nb_frames, fps, width, height) using ffprobe."""
     try:
         result = subprocess.run(
             ['ffprobe', '-v', 'error', '-select_streams', 'v:0',
-             '-show_entries', 'stream=nb_frames,r_frame_rate,duration',
+             '-show_entries', 'stream=nb_frames,r_frame_rate,duration,width,height',
              '-of', 'json', video_path],
             capture_output=True, text=True, timeout=30,
         )
@@ -41,14 +41,16 @@ def get_video_info(video_path):
         else:
             duration = float(stream.get('duration', 0))
             nb = int(round(duration * fps))
-        return nb, fps
+        width = int(stream.get('width', 0))
+        height = int(stream.get('height', 0))
+        return nb, fps, width, height
     except Exception:
-        return None, None
+        return None, None, None, None
 
 
 def expected_clip_count(video_path, clip_duration):
     """Mirror the math in split_video_into_clips to compute expected clips."""
-    nb_frames, fps = get_video_info(video_path)
+    nb_frames, fps, _, _ = get_video_info(video_path)
     if nb_frames is None or fps is None or fps <= 0:
         return None
     segment_frame_count = int(fps * clip_duration)
@@ -59,6 +61,27 @@ def expected_clip_count(video_path, clip_duration):
     total_segments = nb_frames // segment_frame_count
     remaining = nb_frames % segment_frame_count
     return total_segments + (1 if remaining > 0 else 0)
+
+
+def estimate_mem_per_video_gb(video_path):
+    """Estimate peak memory (GB) needed to load one video as float32 tensor."""
+    nb_frames, _, w, h = get_video_info(video_path)
+    if not nb_frames or not w or not h:
+        return None
+    # float32 tensor + safety margin 2x for intermediate copies
+    bytes_needed = nb_frames * w * h * 3 * 4 * 2
+    return bytes_needed / (1024 ** 3)
+
+
+def adaptive_workers(videos, max_workers, mem_budget_gb):
+    """Pick worker count based on probed memory per video."""
+    if not videos:
+        return max_workers
+    mem_per = estimate_mem_per_video_gb(videos[0])
+    if mem_per is None or mem_per <= 0:
+        return max_workers
+    safe = max(1, int(mem_budget_gb / mem_per))
+    return min(max_workers, safe)
 
 # Make sure vbench2_beta_long is importable
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -102,7 +125,8 @@ def collect_folder_tasks(folder):
     return split_clip_dir, videos
 
 
-def process_folder(folder, workers, duration, folder_idx, total_folders):
+def process_folder(folder, workers, duration, folder_idx, total_folders,
+                   mem_budget_gb):
     """Split all videos in one folder with a progress bar."""
     split_clip_dir, videos = collect_folder_tasks(folder)
     if not videos:
@@ -110,13 +134,19 @@ def process_folder(folder, workers, duration, folder_idx, total_folders):
         return 0, 0, 0
 
     label = os.path.basename(os.path.dirname(folder)) + "/" + os.path.basename(folder)
-    print(f"\n[{folder_idx}/{total_folders}] {label}  ({len(videos)} videos)", flush=True)
+    # Adapt worker count to video memory footprint
+    eff_workers = adaptive_workers(videos, workers, mem_budget_gb)
+    mem_per = estimate_mem_per_video_gb(videos[0])
+    mem_str = f"{mem_per:.1f}GB/vid" if mem_per else "?GB/vid"
+    print(f"\n[{folder_idx}/{total_folders}] {label}  "
+          f"({len(videos)} videos, {mem_str}, workers={eff_workers}/{workers})",
+          flush=True)
 
     done = 0
     skipped = 0
     failed = 0
 
-    with ProcessPoolExecutor(max_workers=workers) as executor:
+    with ProcessPoolExecutor(max_workers=eff_workers) as executor:
         futures = {
             executor.submit(split_one, vp, split_clip_dir, duration): vp
             for vp in videos
@@ -143,19 +173,22 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("folders", nargs="+", help="Video folders to process")
     ap.add_argument("--workers", type=int, default=64,
-                    help="Number of parallel worker processes")
+                    help="Max parallel worker processes (may be reduced per-folder)")
     ap.add_argument("--duration", type=int, default=2,
                     help="Clip duration in seconds (VBench Long uses 2)")
+    ap.add_argument("--mem-budget-gb", type=float, default=300.0,
+                    help="Total RAM budget for concurrent video tensors (GB)")
     args = ap.parse_args()
 
     start = time.time()
     total_folders = len(args.folders)
-    print(f"Processing {total_folders} folders with {args.workers} workers, "
-          f"duration={args.duration}s")
+    print(f"Processing {total_folders} folders with max {args.workers} workers, "
+          f"duration={args.duration}s, mem_budget={args.mem_budget_gb:.0f}GB")
 
     tot_done = tot_skip = tot_fail = 0
     for i, folder in enumerate(args.folders, start=1):
-        d, s, f = process_folder(folder, args.workers, args.duration, i, total_folders)
+        d, s, f = process_folder(folder, args.workers, args.duration, i,
+                                 total_folders, args.mem_budget_gb)
         tot_done += d
         tot_skip += s
         tot_fail += f
