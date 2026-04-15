@@ -2,10 +2,10 @@
 #SBATCH -J split_vids
 #SBATCH -o job-split-%j.log
 #SBATCH -e job-split-%j.err
-#SBATCH -p CPU-192C768GB
-#SBATCH --qos=qos_cpu_192c768gb
+#SBATCH -p CPU-96C3TB
+#SBATCH --qos=qos_cpu_96c3tb
 #SBATCH -c 64
-#SBATCH --mem=512G
+#SBATCH --mem=2500G
 #SBATCH --time=8:00:00
 
 echo "Time is $(date)"
@@ -38,7 +38,7 @@ FOLDERS=(
     "$BASE/Reward-Forcing-T2V-1.3B_180s/Reward-Forcing-T2V-1.3B"
 )
 
-python3 batch_split_videos.py --workers 48 --duration 2 --mem-budget-gb 380 "${FOLDERS[@]}"
+python3 batch_split_videos.py --workers 64 --duration 2 --mem-budget-gb 2200 "${FOLDERS[@]}"
 
 echo ""
 echo "Finished at $(date)"
