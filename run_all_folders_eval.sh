@@ -206,6 +206,10 @@ eval_one_folder() {
         # PYTHONUNBUFFERED=1 keeps tqdm updates flushing in real-time.
         # pipefail so an eval crash actually surfaces here instead of
         # being hidden behind the filter's 0 exit code.
+        # Snapshot result files before so we can detect the "exit-0 but
+        # wrote nothing" pathological case after the run.
+        local before_files
+        before_files=$(ls "$out"/results_*_eval_results.json 2>/dev/null | wc -l)
         local eval_rc=0
         (
             set -o pipefail
@@ -228,6 +232,14 @@ eval_one_folder() {
         if [ "$eval_rc" -ne 0 ]; then
             echo "  WARNING: $DIM failed on $label (rc=$eval_rc)" >> "$log"
             say "  !! FAIL  $label  $DIM  (rc=$eval_rc) — see $log"
+        else
+            # Exit 0 but no new results file? Something swallowed the error.
+            local after_files
+            after_files=$(ls "$out"/results_*_eval_results.json 2>/dev/null | wc -l)
+            if [ "$after_files" -le "$before_files" ]; then
+                echo "  WARNING: $DIM on $label exited 0 but produced no new results file" >> "$log"
+                say "  !! FAIL (no output)  $label  $DIM  — see $log"
+            fi
         fi
 
         # Bump progress + print live scores
