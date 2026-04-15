@@ -62,6 +62,13 @@ FOLDERS=(
 
 DIMS=(subject_consistency background_consistency motion_smoothness dynamic_degree aesthetic_quality imaging_quality)
 
+TOTAL_TASKS=$(( ${#FOLDERS[@]} * ${#DIMS[@]} ))
+PROGRESS_FILE="$OUTPUT_ROOT/.progress"
+LOCK_FILE="$OUTPUT_ROOT/.stdout.lock"
+: > "$PROGRESS_FILE"
+
+export OUTPUT_ROOT PROGRESS_FILE LOCK_FILE TOTAL_TASKS
+
 echo "============================================================"
 echo "  VBench Long — Batch Folder Evaluation"
 echo "============================================================"
@@ -69,7 +76,91 @@ echo "Output root : $OUTPUT_ROOT"
 echo "GPUs        : ${GPUS[*]}  (len=$NUM_GPUS)"
 echo "Folders     : ${#FOLDERS[@]}"
 echo "Dimensions  : ${DIMS[*]}"
+echo "Total tasks : $TOTAL_TASKS  (folders × dims)"
 echo ""
+
+# ── flock-serialised echo to stdout (workers run concurrently) ──
+say() {
+    (
+        flock 200
+        echo "$@"
+    ) 200>"$LOCK_FILE"
+}
+export -f say
+
+# ── Print compact per-folder scores (raw + running total) ────
+# Used after every dim finishes so you see scores live.
+print_folder_scores() {
+    local out="$1"
+    local label="$2"
+    local just_dim="$3"     # the dim that just finished (underscore form)
+    python3 - "$out" "$label" "$just_dim" << 'PYEOF'
+import json, os, sys, glob
+
+out, label, just_dim = sys.argv[1], sys.argv[2], sys.argv[3]
+just_dim_name = just_dim.replace('_', ' ')
+
+NORMALIZE_DIC = {
+    'subject consistency':    {'Min': 0.1462, 'Max': 1.0},
+    'background consistency': {'Min': 0.2615, 'Max': 1.0},
+    'motion smoothness':      {'Min': 0.7060, 'Max': 0.9975},
+    'dynamic degree':         {'Min': 0.0000, 'Max': 1.0},
+    'aesthetic quality':      {'Min': 0.0000, 'Max': 1.0},
+    'imaging quality':        {'Min': 0.0000, 'Max': 1.0},
+}
+DIM_WEIGHT = {d: (0.5 if d == 'dynamic degree' else 1.0) for d in NORMALIZE_DIC}
+SHORT = {
+    'subject consistency':    'SC',
+    'background consistency': 'BC',
+    'motion smoothness':      'MS',
+    'dynamic degree':         'DD',
+    'aesthetic quality':      'AQ',
+    'imaging quality':        'IQ',
+}
+
+raw = {}
+for rf in glob.glob(os.path.join(out, 'results_*_eval_results.json')):
+    try:
+        with open(rf) as f:
+            data = json.load(f)
+    except Exception:
+        continue
+    for k, v in data.items():
+        dn = k.replace('_', ' ')
+        if dn not in NORMALIZE_DIC:
+            continue
+        if isinstance(v, list) and v:
+            raw[dn] = v[0]
+        elif isinstance(v, (int, float)):
+            raw[dn] = v
+
+# Total: weighted normalized over dims we already have
+num, denom = 0.0, 0.0
+for dim in NORMALIZE_DIC:
+    if dim not in raw:
+        continue
+    mn, mx = NORMALIZE_DIC[dim]['Min'], NORMALIZE_DIC[dim]['Max']
+    w = DIM_WEIGHT[dim]
+    num += (raw[dim] - mn) / (mx - mn) * w
+    denom += w
+total_str = f'{(num/denom)*100:6.2f}' if denom > 0 else '  --  '
+ndims = sum(1 for d in NORMALIZE_DIC if d in raw)
+
+just_val = raw.get(just_dim_name)
+just_str = f'{just_val*100:6.2f}' if just_val is not None else '  --  '
+
+cells = []
+for dim in NORMALIZE_DIC:
+    tag = SHORT[dim]
+    if dim in raw:
+        cells.append(f'{tag}={raw[dim]*100:5.2f}')
+    else:
+        cells.append(f'{tag}= -- ')
+picture = ' '.join(cells)
+print(f'{label}  just={just_dim}={just_str}  |  {picture}  |  Total={total_str} ({ndims}/6)')
+PYEOF
+}
+export -f print_folder_scores
 
 # ── Evaluator for one folder on one GPU ──────────────────────
 eval_one_folder() {
@@ -83,40 +174,61 @@ eval_one_folder() {
     {
         echo "=== [$label] GPU=$gpu dir=$vdir ==="
         echo "start: $(date)"
-
-        if [ ! -d "$vdir" ]; then
-            echo "MISSING folder: $vdir"
-            echo "FAIL_MISSING" > "$out/status"
-            return
-        fi
-
-        cd "$SCRIPT_DIR"
-        for DIM in "${DIMS[@]}"; do
-            # Skip if this dim already produced a results file
-            if ls "$out"/results_*_eval_results.json 2>/dev/null \
-               | xargs -I{} grep -l "\"${DIM}\"" {} 2>/dev/null | grep -q .; then
-                echo "  skip $DIM (already done)"
-                continue
-            fi
-            echo "  -- $DIM"
-            local port
-            port=$(shuf -i 29500-39999 -n 1)
-            CUDA_VISIBLE_DEVICES="$gpu" \
-            MASTER_PORT="$port" \
-            python vbench2_beta_long/eval_long.py \
-                --videos_path "$vdir" \
-                --dimension "$DIM" \
-                --mode long_custom_input \
-                --output_path "$out" \
-                --load_ckpt_from_local True \
-                --dev_flag \
-                || echo "  WARNING: $DIM failed on $label"
-        done
-
-        echo "done: $(date)"
-        echo "OK" > "$out/status"
     } >> "$log" 2>&1
+
+    if [ ! -d "$vdir" ]; then
+        echo "MISSING folder: $vdir" >> "$log"
+        echo "FAIL_MISSING" > "$out/status"
+        say "  !! MISSING folder for $label: $vdir"
+        return
+    fi
+
+    cd "$SCRIPT_DIR"
+    for DIM in "${DIMS[@]}"; do
+        # Skip if this dim already produced a results file
+        if ls "$out"/results_*_eval_results.json 2>/dev/null \
+           | xargs -I{} grep -l "\"${DIM}\"" {} 2>/dev/null | grep -q .; then
+            echo "  skip $DIM (already done)" >> "$log"
+            # Still bump progress so totals stay correct.
+            echo "skip $label $DIM" >> "$PROGRESS_FILE"
+            local done_n
+            done_n=$(wc -l < "$PROGRESS_FILE")
+            local line
+            line=$(print_folder_scores "$out" "$label" "$DIM" 2>/dev/null)
+            say "[${done_n}/${TOTAL_TASKS}] SKIP  $line"
+            continue
+        fi
+        echo "  -- $DIM" >> "$log"
+        local port
+        port=$(shuf -i 29500-39999 -n 1)
+        CUDA_VISIBLE_DEVICES="$gpu" \
+        MASTER_PORT="$port" \
+        python vbench2_beta_long/eval_long.py \
+            --videos_path "$vdir" \
+            --dimension "$DIM" \
+            --mode long_custom_input \
+            --output_path "$out" \
+            --load_ckpt_from_local True \
+            --dev_flag \
+            >> "$log" 2>&1 \
+            || echo "  WARNING: $DIM failed on $label" >> "$log"
+
+        # Bump progress + print live scores
+        echo "done $label $DIM" >> "$PROGRESS_FILE"
+        local done_n
+        done_n=$(wc -l < "$PROGRESS_FILE")
+        local line
+        line=$(print_folder_scores "$out" "$label" "$DIM" 2>/dev/null)
+        say "[${done_n}/${TOTAL_TASKS}] DONE  $line"
+    done
+
+    {
+        echo "done: $(date)"
+    } >> "$log" 2>&1
+    echo "OK" > "$out/status"
+    say "  ==> FOLDER FINISHED: $label"
 }
+export -f eval_one_folder
 
 # ── Run all folders with GPU-level parallelism ───────────────
 pids=()
