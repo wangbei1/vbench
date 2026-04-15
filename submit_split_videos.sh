@@ -3,7 +3,7 @@
 #SBATCH -o job-split-%j.log
 #SBATCH -e job-split-%j.err
 #SBATCH -p CPU-192C768GB
-#SBATCH --qos=qos_cpu_1+
+#SBATCH --qos=qos_cpu_192c768gb
 #SBATCH -c 128
 #SBATCH --mem=256G
 #SBATCH --time=8:00:00
