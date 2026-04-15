@@ -37,7 +37,7 @@ FOLDERS=(
     "$BASE/Reward-Forcing-T2V-1.3B_180s/Reward-Forcing-T2V-1.3B"
 )
 
-python3 batch_split_videos.py --workers 96 --duration 2 "${FOLDERS[@]}"
+python3 batch_split_videos.py --workers 128 --duration 2 "${FOLDERS[@]}"
 
 echo ""
 echo "Finished at $(date)"
