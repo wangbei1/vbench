@@ -46,19 +46,25 @@ mkdir -p "$OUTPUT_ROOT"
 
 BASE="/home/zdmaogroup/wubin/reward-forcing-claude-add-experiment-runner-script-PPlnc/reward-forcing-claude-spatial-reward-forcing-L5245/Reward-Forcing-main/videos"
 
-# (label, video_folder) pairs — label is used for the summary grouping
-FOLDERS=(
-    "focalreward_10s|$BASE/focalreward_008000_10s/008000"
-    "focalreward_30s|$BASE/focalreward_008000_30s/008000"
-    "focalreward_60s|$BASE/focalreward_008000_60s/008000"
-    "focalreward_120s|$BASE/focalreward_008000_120s/008000"
-    "focalreward_180s|$BASE/focalreward_008000_180s/008000"
-    "reward_forcing_10s|$BASE/Reward-Forcing-T2V-1.3B_10s/Reward-Forcing-T2V-1.3B"
-    "reward_forcing_30s|$BASE/Reward-Forcing-T2V-1.3B_30s/Reward-Forcing-T2V-1.3B"
-    "reward_forcing_60s|$BASE/Reward-Forcing-T2V-1.3B_60s/Reward-Forcing-T2V-1.3B"
-    "reward_forcing_120s|$BASE/Reward-Forcing-T2V-1.3B_120s/Reward-Forcing-T2V-1.3B"
-    "reward_forcing_180s|$BASE/Reward-Forcing-T2V-1.3B_180s/Reward-Forcing-T2V-1.3B"
-)
+# (label, video_folder) pairs — label is used for the summary grouping.
+# Override by exporting FOLDERS_LIST (newline-separated label|path lines)
+# before invoking this script.
+if [ -n "$FOLDERS_LIST" ]; then
+    mapfile -t FOLDERS < <(printf '%s\n' "$FOLDERS_LIST" | sed '/^[[:space:]]*$/d')
+else
+    FOLDERS=(
+        "focalreward_10s|$BASE/focalreward_008000_10s/008000"
+        "focalreward_30s|$BASE/focalreward_008000_30s/008000"
+        "focalreward_60s|$BASE/focalreward_008000_60s/008000"
+        "focalreward_120s|$BASE/focalreward_008000_120s/008000"
+        "focalreward_180s|$BASE/focalreward_008000_180s/008000"
+        "reward_forcing_10s|$BASE/Reward-Forcing-T2V-1.3B_10s/Reward-Forcing-T2V-1.3B"
+        "reward_forcing_30s|$BASE/Reward-Forcing-T2V-1.3B_30s/Reward-Forcing-T2V-1.3B"
+        "reward_forcing_60s|$BASE/Reward-Forcing-T2V-1.3B_60s/Reward-Forcing-T2V-1.3B"
+        "reward_forcing_120s|$BASE/Reward-Forcing-T2V-1.3B_120s/Reward-Forcing-T2V-1.3B"
+        "reward_forcing_180s|$BASE/Reward-Forcing-T2V-1.3B_180s/Reward-Forcing-T2V-1.3B"
+    )
+fi
 
 DIMS=(subject_consistency background_consistency motion_smoothness dynamic_degree aesthetic_quality imaging_quality)
 
