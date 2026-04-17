@@ -125,6 +125,7 @@ SHORT = {
 }
 
 raw = {}
+iq_detailed = []
 for rf in glob.glob(os.path.join(out, 'results_*_eval_results.json')):
     try:
         with open(rf) as f:
@@ -137,8 +138,27 @@ for rf in glob.glob(os.path.join(out, 'results_*_eval_results.json')):
             continue
         if isinstance(v, list) and v:
             raw[dn] = v[0]
+            if dn == 'imaging quality' and len(v) > 1:
+                iq_detailed = v[1]
         elif isinstance(v, (int, float)):
             raw[dn] = v
+
+# Drift: mean of per-video IQ std across clips
+drift_str = ''
+if iq_detailed and isinstance(iq_detailed, list):
+    from collections import defaultdict
+    import numpy as np
+    vscores = defaultdict(list)
+    for item in iq_detailed:
+        if not isinstance(item, dict) or 'video_path' not in item:
+            continue
+        cp = item['video_path']
+        vn = os.path.basename(os.path.dirname(cp)) if 'split_clip' in cp else os.path.basename(cp)
+        vscores[vn].append(item['video_results'])
+    if vscores:
+        stds = [float(np.std(s)) for s in vscores.values() if len(s) > 1]
+        if stds:
+            drift_str = f' Drift={float(np.mean(stds)):.3f}'
 
 # Total: weighted normalized over dims we already have
 num, denom = 0.0, 0.0
@@ -163,7 +183,7 @@ for dim in NORMALIZE_DIC:
     else:
         cells.append(f'{tag}= -- ')
 picture = ' '.join(cells)
-print(f'{label}  just={just_dim}={just_str}  |  {picture}  |  Total={total_str} ({ndims}/6)')
+print(f'{label}  just={just_dim}={just_str}  |  {picture}  |  Total={total_str} ({ndims}/6){drift_str}')
 PYEOF
 }
 export -f print_folder_scores
@@ -313,8 +333,9 @@ DIM_WEIGHT = {d: (0.5 if d == 'dynamic degree' else 1.0) for d in NORMALIZE_DIC}
 ORDER = list(NORMALIZE_DIC.keys())
 
 def load_folder_scores(folder_out):
-    """Return {dim_name: raw_score} merged across every results_*.json."""
+    """Return ({dim_name: raw_score}, drift_or_None)."""
     scores = {}
+    iq_detailed = []
     for rf in glob.glob(os.path.join(folder_out, 'results_*_eval_results.json')):
         with open(rf) as f:
             data = json.load(f)
@@ -324,9 +345,25 @@ def load_folder_scores(folder_out):
                 continue
             if isinstance(v, list) and v:
                 scores[dn] = v[0]
+                if dn == 'imaging quality' and len(v) > 1:
+                    iq_detailed = v[1]
             elif isinstance(v, (int, float)):
                 scores[dn] = v
-    return scores
+    drift = None
+    if iq_detailed and isinstance(iq_detailed, list):
+        import numpy as np
+        vscores = defaultdict(list)
+        for item in iq_detailed:
+            if not isinstance(item, dict) or 'video_path' not in item:
+                continue
+            cp = item['video_path']
+            vn = os.path.basename(os.path.dirname(cp)) if 'split_clip' in cp else os.path.basename(cp)
+            vscores[vn].append(item['video_results'])
+        if vscores:
+            stds = [float(np.std(s)) for s in vscores.values() if len(s) > 1]
+            if stds:
+                drift = float(np.mean(stds))
+    return scores, drift
 
 def compute_total(raw):
     """Weighted normalized total following VBench Long (denom = 5.5)."""
@@ -359,7 +396,7 @@ for label in sorted(os.listdir(output_root)):
     sub = os.path.join(output_root, label)
     if not os.path.isdir(sub):
         continue
-    raw = load_folder_scores(sub)
+    raw, drift = load_folder_scores(sub)
     if not raw:
         continue
     total, ndims = compute_total(raw)
@@ -367,6 +404,7 @@ for label in sorted(os.listdir(output_root)):
         'raw': raw,
         'total': total,
         'ndims': ndims,
+        'drift': drift,
     }
 
 # ── Group by method, sort by length ──────────────────────────
@@ -403,7 +441,7 @@ for method in sorted(by_method):
     lines.append('-' * 100)
     lines.append(f'Method: {method}')
     lines.append('-' * 100)
-    hdr = f'  {"Length":>7s}  ' + '  '.join(f'{h:>8s}' for _, h in header_dims) + f'  {"Total":>8s}  {"Dims":>5s}'
+    hdr = f'  {"Length":>7s}  ' + '  '.join(f'{h:>8s}' for _, h in header_dims) + f'  {"Total":>8s}  {"Drift":>7s}  {"Dims":>5s}'
     lines.append(hdr)
     for length, label, r in by_method[method]:
         raw = r['raw']
@@ -416,9 +454,12 @@ for method in sorted(by_method):
                 cells.append(f'{"--":>8s}')
         row += '  '.join(cells)
         if r['total'] is not None:
-            row += f'  {r["total"]*100:8.2f}  {r["ndims"]:>3d}/6'
+            row += f'  {r["total"]*100:8.2f}'
         else:
-            row += f'  {"--":>8s}  {"--":>5s}'
+            row += f'  {"--":>8s}'
+        drift = r.get('drift')
+        row += f'  {drift:7.3f}' if drift is not None else f'  {"--":>7s}'
+        row += f'  {r["ndims"]:>3d}/6' if r['total'] is not None else f'  {"--":>5s}'
         lines.append(row)
     lines.append('')
 
@@ -453,6 +494,7 @@ with open(json_path, 'w') as f:
         label: {
             'raw_x100': {k: round(v*100, 2) for k, v in r['raw'].items()},
             'total_x100': round(r['total']*100, 2) if r['total'] is not None else None,
+            'drift': round(r['drift'], 3) if r.get('drift') is not None else None,
             'ndims': r['ndims'],
         }
         for label, r in results.items()
