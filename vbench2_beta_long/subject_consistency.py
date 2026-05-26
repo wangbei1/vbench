@@ -49,7 +49,7 @@ def compute_long_subject_consistency(json_dir, device, submodules_list, **kwargs
             all_results, video_results = subject_consistency(dino_model, video_list, device, read_frame)
         elif kwargs['sb_clip2clip_feat_extractor'] == 'dinov2':
             dinov2_dict = {
-                'repo_or_dir': f'facebookresearch/dinov2',
+                'repo_or_dir': os.path.expanduser('~/.cache/torch/hub/facebookresearch_dinov2_main'),
                 'model': 'dinov2_vitb14',
                 'source': 'local',
                 }
