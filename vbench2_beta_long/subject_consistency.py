@@ -51,6 +51,7 @@ def compute_long_subject_consistency(json_dir, device, submodules_list, **kwargs
             dinov2_dict = {
                 'repo_or_dir': f'facebookresearch/dinov2',
                 'model': 'dinov2_vitb14',
+                'source': 'local',
                 }
             dinov2_model = torch.hub.load(**dinov2_dict).to(device)
             read_frame = submodules_list['read_frame']
